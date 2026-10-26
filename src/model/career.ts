@@ -912,6 +912,7 @@ function resolvePressure(s: CareerState, item: Extract<TurnItem, { kind: 'pressa
     if (s.office === 'prefeito' || s.office === 'vereador') s.muniEffects = [...s.muniEffects, { fromYear: next, years: 1, growth: growth * 0.5 }]
     else s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: 1, growth: growth * (s.office === 'governador' ? 0.6 : 0.3) }]
   }
+  s.history = [...s.history, { year: next, kind: 'pressao', id: `${ev.id}:${opt.id}` }]
   const outcome = opt.success === undefined ? '' : ok ? opt.okText : opt.failText
   s.log = [...s.log, { year: next, kind: 'info', title: `${ev.group}: ${lowerFirst(opt.label)}`, text: [ev.title, outcome].filter(Boolean).join('. '), good: ok && (opt.approval ?? 0) >= 0 }]
   return s

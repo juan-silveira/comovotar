@@ -311,6 +311,19 @@ describe('pressões de grupos e redes', () => {
   })
 })
 
+describe('saúde, educação, segurança e meio ambiente', () => {
+  it('partem de 2023 e respondem às escolhas', () => {
+    const results = simulate(missionInput(mission, 30, []))
+    const c = newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' })
+    const base = socialSeries(c, results, 10)
+    expect(base[0]).toMatchObject({ infantMortality: 12.5, ideb: 4.3, homicides: 22.8, deforestation: 9064 })
+    const green = { ...c, history: Array.from({ length: 10 }, (_, i) => ({ year: i + 1, kind: 'pressao' as const, id: 'ambientalistas:apoiar' })) }
+    expect(socialSeries(green, results, 10)[10].deforestation).toBeLessThan(base[10].deforestation * 0.7)
+    const careless = { ...c, history: [{ year: 3, kind: 'crise' as const, id: 'minimizar' }] }
+    expect(socialSeries(careless, results, 3)[3].infantMortality).toBeGreaterThan(base[3].infantMortality)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })
