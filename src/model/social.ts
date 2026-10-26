@@ -141,7 +141,7 @@ export function socialSeries(career: CareerState, results: YearResult[], upTo: n
     const prev = out[t - 1]
     support = 0.6 * support + socialEffort(career, t)
     // Lei de Okun: cada ponto de crescimento acima de ~2% reduz o desemprego; há retorno lento ao nível de equilíbrio.
-    const unemployment = clamp(prev.unemployment - 0.4 * (g - 2) + 0.08 * (6.5 - prev.unemployment), 3, 20)
+    const unemployment = clamp(prev.unemployment - 0.4 * (g - 2) + 0.2 * (5.5 - prev.unemployment), 3, 20)
     const du = unemployment - prev.unemployment
     structural = clamp(structural - 0.6 * (g - 1.5) + 0.9 * du, 8, 45)
     const poverty = clamp(structural - 1.2 * support, 5, 45)

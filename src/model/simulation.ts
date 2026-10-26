@@ -25,6 +25,7 @@ import {
 } from './decisions'
 import { drawEvents, mulberry32, type EventOccurrence } from './events'
 import { drawGlobal, GLOBAL_PROBABILITY } from './geopolitics'
+import { MACRO_BASE, monetaryTightness, stepMacro, type MacroYear } from './macro'
 import {
   CABINET_EFFECTS,
   congressPassProbability,
@@ -49,7 +50,7 @@ import {
 } from './politics'
 import { ALL_UFS, type UF } from './states'
 
-export const MODEL_VERSION = 3
+export const MODEL_VERSION = 4
 export const HORIZON = 30
 
 export type BlockId = 'A' | 'B'
@@ -91,6 +92,8 @@ export const COMPONENT_LABELS: Record<keyof Components, string> = {
 /** Partes que compõem os componentes agrupados, para explicações e tabelas. */
 export interface SubComponents {
   separationFiscal: number
+  /** Efeito dos juros: aperto monetário freia o crescimento */
+  monetary: number
   /** Ganho de política própria após a separação */
   autonomy: number
   politics: number
@@ -166,6 +169,8 @@ export interface YearResult {
   united: { gdp: number; pop: number; gdpPc: number }
   newEvents: EventOccurrence[]
   activeEvents: EventOccurrence[]
+  /** Câmbio, inflação e Selic do ano (Brasil) */
+  macro: MacroYear
   climateEvents: ClimateEvent[]
   politicalEvents: PoliticalEvent[]
   institutionalEvents: InstitutionalEvent[]
@@ -502,6 +507,7 @@ export interface SimSetup {
 const ZERO: Components = { base: 0, fiscal: 0, trade: 0, transition: 0, demography: 0, resources: 0, events: 0 }
 const ZERO_SUB: SubComponents = {
   separationFiscal: 0,
+  monetary: 0,
   autonomy: 0,
   politics: 0,
   institutions: 0,
@@ -563,6 +569,7 @@ export function setup(input: SimInput): SimSetup {
       united: { gdp: a.gdp + b.gdp, pop: popTotal, gdpPc: (a.gdp + b.gdp) / popTotal },
       newEvents: [],
       activeEvents: [],
+      macro: { dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation, selic: MACRO_BASE.selic },
       climateEvents: [],
       politicalEvents: [],
       institutionalEvents: [],
@@ -753,10 +760,15 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
   const localA = weighted('A', (u) => ufLocal[u]) + p.lawGrowthA
   const localB = weighted('B', (u) => ufLocal[u]) + p.lawGrowthB
 
+  // Juros: o Banco Central reage à inflação do ano anterior; juro real acima do neutro freia a economia.
+  const tight = p.institutionsEnabled ? monetaryTightness(prev.macro) : 0
+  const monetary = -0.08 * tight
+
   // Política -----------------------------------------------------------------
-  const econA = s.A.baseGrowth + fiscalA + autonomyA + tradeA + transition + agingA + migrationA + firmsA + econEventsA + climateA + localA
+  const econA = s.A.baseGrowth + monetary + fiscalA + autonomyA + tradeA + transition + agingA + migrationA + firmsA + econEventsA + climateA + localA
   const econB =
     s.B.baseGrowth +
+    monetary +
     fiscalB +
     autonomyB +
     tradeB +
@@ -831,6 +843,7 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
 
   const subA: SubComponents = {
     separationFiscal: fiscalA,
+    monetary,
     autonomy: autonomyA,
     politics: polGrowthA,
     institutions: instGrowth(instA),
@@ -845,6 +858,7 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
   }
   const subB: SubComponents = {
     separationFiscal: fiscalB,
+    monetary,
     autonomy: autonomyB,
     politics: polGrowthB,
     institutions: instGrowth(instB),
@@ -859,7 +873,7 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
   }
   const compose = (base: number, sub: SubComponents, trade: number): Components => ({
     base,
-    fiscal: sub.separationFiscal + sub.autonomy + sub.politics + sub.institutions + sub.localPolicies,
+    fiscal: sub.separationFiscal + sub.monetary + sub.autonomy + sub.politics + sub.institutions + sub.localPolicies,
     trade,
     transition,
     demography: sub.aging + sub.migration,
@@ -899,7 +913,9 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
     coef.realInterestRate +
     (separated ? Math.max(0, p.riskPremium + p.riskPremiumDelta) : 0) +
     (p.politicsEnabled ? TRANSPARENCY_PREMIUM[side === 'A' ? p.transparencyA : p.transparencyB] : 0) +
-    (iy?.premium ?? 0)
+    (iy?.premium ?? 0) +
+    // Parte do aperto monetário encarece a rolagem da dívida.
+    0.3 * tight
 
   const block = (
     side: BlockId,
@@ -999,9 +1015,20 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
   }
   united.gdpPc = united.gdp / united.pop
 
+  // Câmbio, inflação e Selic do ano, a partir dos resultados nacionais.
+  const wNow = A.gdp / (A.gdp + B.gdp)
+  const natNow = (f: (b: BlockYear) => number, a: BlockYear, b: BlockYear) => wNow * f(a) + (1 - wNow) * f(b)
+  const macro = stepMacro(prev.macro, {
+    growth: natNow((b) => b.growth, A, B),
+    premiumChange: natNow((b) => b.interestRate, A, B) - natNow((b) => b.interestRate, prev.A, prev.B),
+    debtChange: natNow((b) => b.debt, A, B) - natNow((b) => b.debt, prev.A, prev.B),
+    newEvents,
+  })
+
   return {
     t,
     year: baseline.baseYear + t,
+    macro,
     A,
     B,
     uf,

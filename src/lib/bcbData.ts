@@ -38,7 +38,7 @@ function isoDate(br: string): string {
 
 const brDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 
-async function fetchSeries(code: number, days: number): Promise<BcbPoint[]> {
+export async function fetchSeries(code: number, days: number): Promise<BcbPoint[]> {
   const end = new Date()
   const start = new Date(end.getTime() - days * 24 * 3600 * 1000)
   const res = await fetch(

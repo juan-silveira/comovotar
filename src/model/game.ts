@@ -30,7 +30,7 @@ export interface Mission {
 export const OBJECTIVE_POINTS = 100
 
 // Metas do cenário unido (calibradas para serem alcançáveis, mas não triviais).
-const UNIDO_DEBT = 100
+const UNIDO_DEBT = 105
 const UNIDO_APPROVAL = 38
 
 // Construtores de objetivos -----------------------------------------------
@@ -110,7 +110,7 @@ export const MISSIONS: Mission[] = [
     separationYear: null,
     seed: 4004,
     eventProbability: 15,
-    objectives: [perCapitaFloor('A', 3), debtCap(UNIDO_DEBT), approvalFloor(UNIDO_APPROVAL)],
+    objectives: [perCapitaFloor('A', 4), debtCap(UNIDO_DEBT), approvalFloor(UNIDO_APPROVAL)],
   },
   {
     id: 'amigavel',
@@ -121,7 +121,7 @@ export const MISSIONS: Mission[] = [
     separationYear: 1,
     seed: 1001,
     eventProbability: 15,
-    objectives: [recoveryBy(3), perCapitaFloor('ambos', 0), debtCap(95)],
+    objectives: [recoveryBy(3), perCapitaFloor('ambos', 0), debtCap(100)],
   },
   {
     id: 'intermediaria',
@@ -132,7 +132,7 @@ export const MISSIONS: Mission[] = [
     separationYear: 1,
     seed: 2002,
     eventProbability: 15,
-    objectives: [recoveryBy(5), balance(3), debtCap(130, ['B'])],
+    objectives: [recoveryBy(5), balance(3), debtCap(150, ['B'])],
   },
   {
     id: 'conflituosa',
@@ -143,7 +143,7 @@ export const MISSIONS: Mission[] = [
     separationYear: 1,
     seed: 3003,
     eventProbability: 20,
-    objectives: [recoveryBy(7), perCapitaFloor('ambos', 37), debtCap(225)],
+    objectives: [recoveryBy(7), perCapitaFloor('ambos', 40), debtCap(280)],
   },
 ]
 
@@ -171,7 +171,7 @@ function weeklyMissionFor(week: string): Mission {
   const seed = hashString(week)
   const types: SeparationType[] = ['amigavel', 'intermediaria', 'conflituosa']
   const separation = types[seed % 3]
-  const caps: Record<SeparationType, number> = { amigavel: 95, intermediaria: 130, conflituosa: 225 }
+  const caps: Record<SeparationType, number> = { amigavel: 100, intermediaria: 150, conflituosa: 280 }
   const recovery: Record<SeparationType, number> = { amigavel: 2, intermediaria: 5, conflituosa: 7 }
   return {
     id: `semanal-${week}`,

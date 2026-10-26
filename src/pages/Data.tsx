@@ -1,3 +1,4 @@
+import { Validation } from '../components/Validation'
 import { useState } from 'react'
 import { BlockTag, Button, Card } from '../components/ui'
 import { loadBaseline, CACHE_DAYS } from '../lib/ibgeData'
@@ -68,6 +69,10 @@ export function Data() {
   return (
     <div className="space-y-5">
       <h1 className="text-2xl font-bold text-ink">Dados de base e metodologia</h1>
+
+      <Card title="Validação: o modelo comparado com o que aconteceu" subtitle="Simulação neutra desde 2023 × dados oficiais de 2024 e 2025">
+        <Validation />
+      </Card>
 
       <Card
         title="Dados por UF (ano base 2023)"

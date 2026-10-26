@@ -135,8 +135,8 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - TSE (eleições, bancadas);
   - Câmara e Senado (proposições reais, para pautas inspiradas em projetos de verdade);
   - Portal da Transparência.
-- [ ] **Modelo endógeno de inflação, câmbio, desemprego e juros** (Banco Central reagindo), ligado ao orçamento e à dívida.
-- [ ] **Calibração e validação:** comparar o modelo com 2003–2023 e revisão por economistas e cientistas políticos de diferentes linhas.
+- [x] **Modelo endógeno de inflação, câmbio e juros:** calculados dentro da simulação ano a ano; o Banco Central reage à inflação do ano anterior, o aperto encarece a dívida e freia o crescimento; dívida e crises mexem no dólar. Desemprego segue a lei de Okun. Missões recalibradas.
+- [x] **Validação (primeira versão):** quadro na página de dados comparando a simulação neutra desde 2023 com PIB, IPCA e desemprego de 2024 e 2025 (Banco Central, ao vivo) e pobreza de 2024; desemprego recalibrado com base nisso. Falta: revisão por economistas e cientistas políticos de diferentes linhas.
 - [ ] **Base de conhecimento** constitucional e legal ampliada, com links para os textos oficiais.
 
 ## Fase 7 — Escola e comunidade

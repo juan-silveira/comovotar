@@ -9,6 +9,7 @@ export type DriverKey = keyof SubComponents | 'trade' | 'transition'
 
 export const DRIVER_LABELS: Record<DriverKey, string> = {
   separationFiscal: 'Fiscal da separação',
+  monetary: 'Juros (Banco Central)',
   autonomy: 'Autonomia de política',
   politics: 'Política',
   institutions: 'Instituições',
@@ -46,6 +47,8 @@ function describe(block: BlockId, key: DriverKey, value: number, r: YearResult, 
       return value < 0
         ? `${name}: perdeu transferências equivalentes a ${fmtPct(r.detail.netTransferLossB)} do seu PIB. O ajuste de gastos e receitas tira ${v} do crescimento.`
         : `${name}: a arrecadação recebida supera as transferências perdidas (${v}).`
+    case 'monetary':
+      return `${name}: com a inflação ${value < 0 ? 'acima' : 'abaixo'} da meta, o Banco Central ${value < 0 ? 'mantém juros altos, o que encarece o crédito e freia' : 'pode baixar os juros, o que estimula'} a economia (${v}).`
     case 'autonomy':
       return `${name}: com governo próprio, ajusta impostos, juros, câmbio e regras à sua economia e coordena menos UFs. Esse ganho cresce aos poucos e depende da qualidade do governo (${v}).`
     case 'politics': {

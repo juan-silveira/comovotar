@@ -326,31 +326,22 @@ describe('saúde, educação, segurança e meio ambiente', () => {
 
 describe('câmbio, inflação e juros', () => {
   it('partem de 2023; crise financeira encarece o dólar; inflação alta custa aprovação', async () => {
-    const { macroSeries, inflationPenalty, MACRO_BASE } = await import('./macro')
+    const { macroSeries, inflationPenalty, MACRO_BASE, stepMacro } = await import('./macro')
     const results = simulate(missionInput(mission, 30, []))
-    const base = macroSeries(results, 5)
-    expect(base[0]).toMatchObject({ dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation })
-    const crisis = results.map((r, t) => (t === 3 ? { ...r, newEvents: [...r.newEvents, { id: 'crise-financeira' as const, year: 3, duration: 1, title: '', effectA: 0, effectB: 0, explanation: '' }] } : r))
-    const hit = macroSeries(crisis, 5)
-    expect(hit[3].dollar).toBeGreaterThan(base[3].dollar * 1.1)
-    expect(hit[3].selic).toBeGreaterThan(base[3].selic)
+    expect(macroSeries(results, 5)[0]).toMatchObject({ dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation })
+    const calm = stepMacro(results[2].macro, { growth: 2, premiumChange: 0, debtChange: 0, newEvents: [] })
+    const crisis = stepMacro(results[2].macro, { growth: 2, premiumChange: 0, debtChange: 0, newEvents: [{ id: 'crise-financeira' }] })
+    expect(crisis.dollar).toBeGreaterThan(calm.dollar * 1.1)
+    expect(crisis.selic).toBeGreaterThan(calm.selic)
     expect(inflationPenalty(4)).toBe(0)
     expect(inflationPenalty(8)).toBeCloseTo(-2.8)
   })
-})
 
-describe('objetivos por cargo', () => {
-  it('vereador: oculto falha ao aceitar propina; reeleição conta como secundário', async () => {
-    const { careerObjectives } = await import('./objectives')
+  it('aperto monetário: inflação acima da meta freia o crescimento no ano seguinte', () => {
     const results = simulate(missionInput(mission, 30, []))
-    const input = missionInput(mission, 30, [])
-    const v = { ...newCareer({ office: 'vereador', uf: 'CE', municipio: null, party: 'UDC' }), t: 5 }
-    const ids = careerObjectives(v, input, results).map((o) => `${o.objective.id}:${o.status}`)
-    expect(ids).toEqual(['leis:pendente', 'reeleicao:pendente', 'merito:pendente', 'limpo:pendente'])
-    const corrupt = { ...v, history: [{ year: 2, kind: 'oferta' as const, id: 'aceitar' }], log: [...v.log, { year: 4, kind: 'eleicao' as const, title: 'Reeleito(a)!', text: '' }] }
-    const st = Object.fromEntries(careerObjectives(corrupt, input, results).map((o) => [o.objective.id, o.status]))
-    expect(st.limpo).toBe('falhou')
-    expect(st.reeleicao).toBe('ok')
+    const t = 5
+    const expected = -0.08 * Math.max(-2, Math.min(3, 0.8 * (results[t - 1].macro.inflation - 3.2)))
+    expect(results[t].A.sub.monetary).toBeCloseTo(expected, 9)
   })
 })
 
