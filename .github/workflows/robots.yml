@@ -27,6 +27,9 @@ jobs:
         run: npm run verify-ranking
       - name: Banco Central
         run: npm run refresh-data -- bcb
+      # A API do IBGE costuma recusar conexões de fora do Brasil (como os servidores do GitHub).
+      # Se falhar, rode localmente: npm run refresh-data -- ibge (com a conta de serviço).
       - name: IBGE (segundas-feiras ou sob demanda)
+        continue-on-error: true
         run: |
           if [ "$(date -u +%u)" = "1" ] || [ "${{ github.event.inputs.ibge }}" = "true" ]; then npm run refresh-data -- ibge; else echo "Não é segunda-feira."; fi
