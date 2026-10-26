@@ -30,6 +30,15 @@ Coleções:
 - `leaderboard/{missionId}__{cargo}__{uid}` — ranking público, só iniciais; a regra valida a soma da pontuação e só aceita melhoria.
 - `datasets/ibge-uf` e `datasets/ibge-municipios-{UF}` — cache público dos dados do IBGE (renovável após 30 dias).
 
+## Automação (GitHub Actions)
+
+- **CI** (`.github/workflows/ci.yml`): tipos, testes, build e teste de interface no celular (`npm run e2e`) a cada commit.
+- **Deploy** (`deploy.yml`): publica no Firebase Hosting a cada commit na `main`. Regras e índices do Firestore continuam com `npm run deploy` (manual).
+- **Robôs** (`robots.yml`, diário às 9h UTC): verificador do ranking (`npm run verify-ranking`), dados do Banco Central e, às segundas, do IBGE (`npm run refresh-data`).
+- Segredo `FIREBASE_SERVICE_ACCOUNT`: chave da conta de serviço `github-robo@comovotar.iam.gserviceaccount.com` (Firestore, Hosting). Variáveis `VITE_FIREBASE_*`: configuração pública do app web.
+- A API do IBGE costuma recusar conexões de fora do Brasil; se a etapa falhar, rode `npm run refresh-data -- ibge` localmente com `FIREBASE_SERVICE_ACCOUNT` definido.
+- Ranking verificado: cada envio guarda o registro de ações (`proofs/`); o verificador repete a partida com o motor do jogo (`src/state/gameCore.ts`) e confirma (✓) ou remove a pontuação.
+
 ## Arquitetura
 
 Todo o modelo é TypeScript puro em `src/model/`, testável e sem dependência de interface:
