@@ -23,6 +23,10 @@ export interface Pauta {
   refs: string[]
   /** Projeto de lei jogável relacionado */
   billId?: string
+  /** Tema moral: o jogo apresenta os lados sem indicar resposta certa */
+  moral?: boolean
+  /** Título da seção de efeitos (padrão: impacto na economia) */
+  effectsTitle?: string
 }
 
 export const PAUTAS: Pauta[] = [
@@ -182,6 +186,132 @@ export const PAUTAS: Pauta[] = [
       'Reino Unido privatizou água e trens nos anos 1980 e 1990; parte dos trens voltou ao controle público.',
     ],
     refs: ['art21'],
+  },
+  {
+    id: 'armas',
+    moral: true,
+    effectsTitle: 'O que dizem os dados',
+    title: 'Posse e porte de armas',
+    today:
+      'O Estatuto do Desarmamento (Lei 10.826/2003) permite a posse (ter arma em casa ou no trabalho) para quem tem 25 anos ou mais, comprova aptidão técnica e psicológica e não tem antecedentes criminais, com registro na Polícia Federal. O porte (andar armado) é proibido em regra, exceto para categorias como policiais e em casos excepcionais autorizados. Em 2005, num referendo, 63,9% dos eleitores rejeitaram proibir o comércio de armas. Decretos de 2019 ampliaram o acesso, principalmente para caçadores, atiradores e colecionadores; um decreto de 2023 voltou a restringir.',
+    proposal: 'Há propostas nos dois sentidos: ampliar a posse e o porte para cidadãos comuns, ou restringir ainda mais o acesso e o número de armas por pessoa.',
+    howToChange:
+      'As regras gerais estão em lei federal (Congresso); os detalhes, em decretos do presidente, que mudam a cada governo. Estados e municípios não podem legislar sobre armas (competência da União, art. 22, XXI).',
+    pros: [
+      { who: 'Quem defende ampliar', text: 'Autodefesa é um direito, sobretudo onde a polícia demora a chegar, como no campo.' },
+      { who: 'Quem defende ampliar', text: 'Criminosos já têm armas ilegais; restringir atinge só o cidadão que segue a lei.' },
+      { who: 'Quem defende ampliar', text: 'O resultado do referendo de 2005 deveria ser respeitado.' },
+    ],
+    cons: [
+      { who: 'Quem defende restringir', text: 'Mais armas em circulação tendem a aumentar homicídios, suicídios e acidentes, segundo boa parte dos estudos.' },
+      { who: 'Quem defende restringir', text: 'Armas legais são furtadas ou desviadas e abastecem o crime.' },
+      { who: 'Quem defende restringir', text: 'Brigas e violência doméstica ficam mais letais quando há arma em casa.' },
+    ],
+    economy: [
+      'Muitos estudos brasileiros associam a queda de homicídios após 2003 ao Estatuto do Desarmamento; outros pesquisadores contestam e atribuem a queda a outros fatores.',
+      'Os registros de armas de caçadores, atiradores e colecionadores cresceram fortemente depois de 2019.',
+      'O Brasil tem uma das maiores taxas de mortes violentas do mundo, o que torna o debate ainda mais sensível.',
+    ],
+    experiences: [
+      'Estados Unidos: acesso amplo a armas e taxa de homicídios por arma muito maior que a de outros países ricos.',
+      'Austrália: recompra obrigatória de armas após um massacre em 1996.',
+    ],
+    refs: ['art22'],
+  },
+  {
+    id: 'maioridade-penal',
+    moral: true,
+    effectsTitle: 'O que dizem os dados',
+    title: 'Redução da maioridade penal',
+    today:
+      'A Constituição diz que menores de 18 anos são penalmente inimputáveis (art. 228): não vão para a prisão comum, mas respondem pelo Estatuto da Criança e do Adolescente (Lei 8.069/1990), com medidas socioeducativas que vão de advertência à internação por até 3 anos.',
+    proposal:
+      'Reduzir a idade para 16 anos, pelo menos para crimes graves como homicídio e estupro. Uma proposta nesse sentido foi aprovada na Câmara em 2015 (PEC 171/1993) e não avançou no Senado. Outra alternativa em debate é ampliar o tempo máximo de internação no ECA.',
+    howToChange:
+      'Exige emenda constitucional (3/5 em dois turnos na Câmara e no Senado). Há divergência sobre se o art. 228 é cláusula pétrea, por ser um direito individual; se for, nem uma emenda poderia mudá-lo, e o STF teria a palavra final.',
+    pros: [
+      { who: 'Quem defende reduzir', text: 'Jovens de 16 e 17 anos sabem o que fazem; a punição deveria ser proporcional ao crime.' },
+      { who: 'Quem defende reduzir', text: 'Facções recrutam adolescentes justamente porque eles recebem penas menores.' },
+      { who: 'Quem defende reduzir', text: 'Pesquisas de opinião mostram apoio majoritário à redução.' },
+    ],
+    cons: [
+      { who: 'Quem é contra', text: 'Adolescentes cometem uma parcela pequena dos crimes graves; a medida teria pouco efeito na violência.' },
+      { who: 'Quem é contra', text: 'O sistema prisional está superlotado e é dominado por facções, que recrutariam esses jovens.' },
+      { who: 'Quem é contra', text: 'Melhor seria fazer cumprir o ECA, com escola, emprego e internação de qualidade.' },
+    ],
+    economy: [
+      'A maioria dos adolescentes internados responde por roubo e tráfico, não por crimes contra a vida.',
+      'Estudos internacionais não mostram efeito claro de idades penais menores sobre a criminalidade juvenil.',
+      'Prender mais pessoas tem custo alto: cada vaga no sistema prisional custa dezenas de milhares de reais por ano.',
+    ],
+    experiences: [
+      'Muitos países fixam a responsabilidade penal plena aos 18 anos, com regimes especiais para jovens a partir de 12 a 16.',
+      'Estados Unidos: alguns estados julgam adolescentes como adultos em crimes graves; o tema é debatido por lá também.',
+    ],
+    refs: ['art60'],
+  },
+  {
+    id: 'cotas',
+    moral: true,
+    effectsTitle: 'O que dizem os dados',
+    title: 'Cotas em universidades e concursos',
+    today:
+      'A Lei de Cotas (Lei 12.711/2012, revista pela Lei 14.723/2023) reserva metade das vagas das universidades e institutos federais para alunos de escola pública, com parte para pessoas de baixa renda, pretas, pardas, indígenas, quilombolas e com deficiência. O STF considerou as cotas raciais constitucionais por unanimidade em 2012 (ADPF 186). Em concursos federais, há reserva de vagas para pessoas negras desde 2014, ampliada em 2025.',
+    proposal:
+      'Há quem proponha manter e ampliar as cotas, inclusive para pós-graduação e cargos de chefia, e quem proponha trocar critérios raciais por critérios só de renda ou encerrar as cotas.',
+    howToChange:
+      'Por lei federal (Congresso). A Lei de Cotas prevê avaliação periódica; universidades estaduais têm regras próprias.',
+    pros: [
+      { who: 'Quem defende as cotas', text: 'Corrigem desigualdades históricas: a renda e o acesso à universidade ainda variam muito por cor e origem escolar.' },
+      { who: 'Quem defende as cotas', text: 'Estudos mostram desempenho de cotistas próximo ao dos demais e mais diversidade nas profissões.' },
+      { who: 'Quem defende as cotas', text: 'A política é temporária e revista periodicamente.' },
+    ],
+    cons: [
+      { who: 'Quem critica', text: 'O mérito deveria ser o único critério de acesso; a seleção por cor pode ser vista como injusta.' },
+      { who: 'Quem critica', text: 'Critérios só de renda alcançariam os mais pobres de qualquer cor e evitariam disputas sobre autodeclaração.' },
+      { who: 'Quem critica', text: 'O problema começa antes: seria melhor investir na educação básica pública.' },
+    ],
+    economy: [
+      'A presença de estudantes pretos, pardos e de escola pública nas universidades federais cresceu muito depois de 2012.',
+      'Comissões de heteroidentificação foram criadas para checar autodeclarações e evitar fraudes, o que também gera controvérsia.',
+    ],
+    experiences: [
+      'Estados Unidos: a Suprema Corte proibiu critérios raciais em admissões universitárias em 2023.',
+      'Índia: tem um dos sistemas de cotas mais antigos do mundo, por casta e grupo social.',
+    ],
+    refs: ['art22'],
+  },
+  {
+    id: 'aborto',
+    moral: true,
+    effectsTitle: 'O que dizem os dados',
+    title: 'Aborto',
+    today:
+      'O Código Penal (arts. 124 a 128) trata o aborto como crime, com duas exceções: quando não há outro meio de salvar a vida da gestante e quando a gravidez resulta de estupro. Em 2012, o STF incluiu a gravidez de feto anencéfalo (ADPF 54). Uma ação no STF pede a descriminalização até a 12ª semana (ADPF 442); o julgamento começou em 2023 e foi suspenso.',
+    proposal:
+      'De um lado, propostas para descriminalizar ou legalizar o aborto nas primeiras semanas. De outro, propostas para proteger a vida desde a concepção, endurecer penas ou limitar até os casos hoje permitidos.',
+    howToChange:
+      'Pelo Congresso, alterando o Código Penal (lei federal) ou a Constituição; ou pelo STF, se ele interpretar a Constituição de forma diferente, o que muitos parlamentares criticam como interferência no Legislativo.',
+    pros: [
+      { who: 'Quem defende descriminalizar', text: 'A criminalização não impede abortos, mas leva mulheres pobres a procedimentos inseguros, com mortes e sequelas.' },
+      { who: 'Quem defende descriminalizar', text: 'A decisão sobre o próprio corpo e a saúde reprodutiva é um direito da mulher.' },
+      { who: 'Quem defende descriminalizar', text: 'Muitos países democráticos permitem o aborto nas primeiras semanas.' },
+    ],
+    cons: [
+      { who: 'Quem é contra', text: 'A vida começa na concepção e deve ser protegida desde então; o feto também tem direitos.' },
+      { who: 'Quem é contra', text: 'A maioria da população brasileira é contra a legalização, segundo pesquisas de opinião.' },
+      { who: 'Quem é contra', text: 'Mudanças desse porte cabem ao Congresso, eleito pelo povo, e não ao STF.' },
+    ],
+    economy: [
+      'Os números exatos de abortos clandestinos são incertos por serem ilegais; pesquisas estimam centenas de milhares por ano.',
+      'Complicações de abortos inseguros estão entre as causas de internação e de morte materna no SUS.',
+      'Pesquisas de opinião mostram maioria contrária à legalização, com variação por idade, religião e escolaridade.',
+    ],
+    experiences: [
+      'Argentina (2020), México (por decisão da Suprema Corte, 2023) e Colômbia (2022) ampliaram o acesso ao aborto legal.',
+      'Estados Unidos: em 2022 a Suprema Corte devolveu o tema aos estados, e vários restringiram o acesso.',
+    ],
+    refs: ['art22'],
   },
 ]
 

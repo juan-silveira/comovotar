@@ -50,7 +50,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 - [x] **Emendas parlamentares no jogo:** deputados, senadores e vereadores decidem o destino das emendas individuais (saúde, obra no reduto, emenda Pix, troca com o governo), com valor de 2026 e efeito proporcional ao tamanho da economia local.
 - [x] **Promessas no jogo:** na campanha (e no início do jogo) o jogador escolhe uma promessa, viável, difícil ou impossível (Bolsa Família de R$ 10.000, mínimo de R$ 5.000, vereador que promete hospital…). Rende votos na eleição; no fim do mandato o eleitor cobra, com base nas escolhas de orçamento, emendas e leis.
 - [x] **Mais pautas econômicas:** isenção do IR até R$ 5 mil (Lei 15.270/2025), tarifa zero (PEC de 2026), reforma tributária do consumo (EC 132/2023, LC 214/2025) e privatizações, com seletor de pautas.
-- [ ] **Pautas morais** (porte de armas, maioridade penal, cotas, aborto): aguardam decisão sobre inclusão; exigem texto revisado, os dois lados e foco na lei vigente.
+- [x] **Pautas morais:** posse e porte de armas, maioridade penal, cotas e aborto, com a lei vigente, como mudar, argumentos dos dois lados, dados e experiências, e aviso de que o jogo não indica resposta certa nem pontua opinião.
 
 ## Fase 1.5 — Leis e temas criados pelo jogador, com IA opcional
 

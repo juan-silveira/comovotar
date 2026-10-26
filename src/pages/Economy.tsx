@@ -232,6 +232,12 @@ function PautasTab() {
       </div>
       {PAUTAS.filter((p) => p.id === pautaId).map((p) => (
         <div key={p.id} className="space-y-4">
+          {p.moral && (
+            <p className="rounded-lg bg-warn-bg p-3 text-sm text-warn-ink">
+              Tema moral e controverso. O jogo apresenta o que diz a lei e os argumentos dos dois lados, sem indicar uma resposta
+              certa e sem pontuar a sua opinião.
+            </p>
+          )}
           <Section title={p.title}>
             <p>
               <strong className="text-ink">Hoje: </strong>
@@ -247,7 +253,7 @@ function PautasTab() {
             </p>
           </Section>
           <div className="grid gap-4 md:grid-cols-2">
-            <Section title="Por que é defendida">
+            <Section title={p.moral ? 'Argumentos de um lado' : 'Por que é defendida'}>
               <ul className="space-y-1.5">
                 {p.pros.map((x) => (
                   <li key={x.text}>
@@ -256,7 +262,7 @@ function PautasTab() {
                 ))}
               </ul>
             </Section>
-            <Section title="Por que é criticada">
+            <Section title={p.moral ? 'Argumentos do outro lado' : 'Por que é criticada'}>
               <ul className="space-y-1.5">
                 {p.cons.map((x) => (
                   <li key={x.text}>
@@ -290,7 +296,7 @@ function PautasTab() {
             </Card>
           )}
           <div className="grid gap-4 md:grid-cols-2">
-            <Section title="Impacto na economia">
+            <Section title={p.effectsTitle ?? 'Impacto na economia'}>
               <ul className="list-disc space-y-1 pl-5">
                 {p.economy.map((x) => (
                   <li key={x}>{x}</li>
