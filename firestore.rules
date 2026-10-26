@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cenários do laboratório: cada usuário lê e escreve apenas os próprios.
+    match /users/{uid}/scenarios/{scenarioId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Cache público dos dados do IBGE (UFs e municípios). Qualquer usuário
+    // autenticado pode criar o cache ou renová-lo depois de 30 dias.
+    match /datasets/{id} {
+      allow read: if true;
+      allow create: if isValidDataset(id);
+      allow update: if isValidDataset(id)
+        && request.time > resource.data.fetchedAtTs + duration.value(30, 'd');
+    }
+
+    function isValidDataset(id) {
+      let d = request.resource.data;
+      return request.auth != null
+        && id.matches('^ibge-(uf|municipios-[A-Z]{2})$')
+        && d.keys().hasOnly(['data', 'fetchedAtTs'])
+        && d.fetchedAtTs == request.time
+        && d.data is map;
+    }
+
+    // Ranking público. Só as iniciais são exibidas; o id do documento é
+    // "{missionId}__{cargo}__{uid}", uma entrada por jogador, cenário e cargo.
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow create: if isValidEntry(entryId);
+      // Só substitui a entrada por uma pontuação maior.
+      allow update: if isValidEntry(entryId)
+        && request.resource.data.score > resource.data.score;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    function isValidEntry(entryId) {
+      let d = request.resource.data;
+      return request.auth != null
+        && d.keys().hasOnly(['missionId', 'office', 'uf', 'uid', 'initials', 'score', 'territory',
+                             'yearsInOffice', 'laws', 'quiz', 'objectivesMet', 'separation',
+                             'modelVersion', 'createdAt'])
+        && d.uid == request.auth.uid
+        && d.missionId is string && d.missionId.size() <= 40
+        && d.office in ['vereador', 'prefeito', 'deputado-estadual', 'governador',
+                        'deputado-federal', 'senador', 'presidente', 'ministro-stf']
+        && entryId == d.missionId + '__' + d.office + '__' + request.auth.uid
+        && d.uf is string && d.uf.matches('^[A-Z]{2}$')
+        && d.initials is string && d.initials.matches('^[A-Z]{2,3}$')
+        && d.territory is int && d.territory >= 0 && d.territory <= 3000
+        && d.yearsInOffice is int && d.yearsInOffice >= 0 && d.yearsInOffice <= 300
+        && d.laws is int && d.laws >= 0 && d.laws <= 1200
+        && d.quiz is int && d.quiz >= 0 && d.quiz <= 240
+        && d.objectivesMet is int && d.objectivesMet >= 0 && d.objectivesMet <= 3
+        && d.score is int
+        && d.score == d.territory + d.yearsInOffice + d.laws + d.quiz + d.objectivesMet * 100
+        && d.separation in ['amigavel', 'intermediaria', 'conflituosa']
+        && d.modelVersion is int
+        && d.createdAt == request.time;
+    }
+  }
+}

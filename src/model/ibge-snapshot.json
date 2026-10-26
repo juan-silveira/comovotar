@@ -1,0 +1,277 @@
+{
+  "fetchedAt": "2026-10-26T15:56:16.677Z",
+  "gdpStartYear": 2002,
+  "gdpEndYear": 2023,
+  "states": [
+    {
+      "ibgeId": 11,
+      "uf": "RO",
+      "name": "Rondônia",
+      "pop2022": 1581196,
+      "pop2010": 1562409,
+      "gdpStart": 7467630000,
+      "gdpEnd": 76456179000,
+      "elderlyShare": 8.11
+    },
+    {
+      "ibgeId": 12,
+      "uf": "AC",
+      "name": "Acre",
+      "pop2022": 830018,
+      "pop2010": 733559,
+      "gdpStart": 2971301000,
+      "gdpEnd": 26291321000,
+      "elderlyShare": 6.33
+    },
+    {
+      "ibgeId": 13,
+      "uf": "AM",
+      "name": "Amazonas",
+      "pop2022": 3941613,
+      "pop2010": 3483985,
+      "gdpStart": 22093338000,
+      "gdpEnd": 161794976000,
+      "elderlyShare": 5.929999999999999
+    },
+    {
+      "ibgeId": 14,
+      "uf": "RR",
+      "name": "Roraima",
+      "pop2022": 636707,
+      "pop2010": 450479,
+      "gdpStart": 2392033000,
+      "gdpEnd": 25124805000,
+      "elderlyShare": 5.069999999999999
+    },
+    {
+      "ibgeId": 15,
+      "uf": "PA",
+      "name": "Pará",
+      "pop2022": 8120131,
+      "pop2010": 7581051,
+      "gdpStart": 26482159000,
+      "gdpEnd": 254546511000,
+      "elderlyShare": 7.249999999999998
+    },
+    {
+      "ibgeId": 16,
+      "uf": "AP",
+      "name": "Amapá",
+      "pop2022": 733759,
+      "pop2010": 669526,
+      "gdpStart": 3173343000,
+      "gdpEnd": 28020120000,
+      "elderlyShare": 5.47
+    },
+    {
+      "ibgeId": 17,
+      "uf": "TO",
+      "name": "Tocantins",
+      "pop2022": 1511460,
+      "pop2010": 1383445,
+      "gdpStart": 5322563000,
+      "gdpEnd": 64317699000,
+      "elderlyShare": 8.620000000000001
+    },
+    {
+      "ibgeId": 21,
+      "uf": "MA",
+      "name": "Maranhão",
+      "pop2022": 6776699,
+      "pop2010": 6574789,
+      "gdpStart": 15924003000,
+      "gdpEnd": 149227195000,
+      "elderlyShare": 8.45
+    },
+    {
+      "ibgeId": 22,
+      "uf": "PI",
+      "name": "Piauí",
+      "pop2022": 3271199,
+      "pop2010": 3119097,
+      "gdpStart": 7122635000,
+      "gdpEnd": 80916856000,
+      "elderlyShare": 10.659999999999998
+    },
+    {
+      "ibgeId": 23,
+      "uf": "CE",
+      "name": "Ceará",
+      "pop2022": 8794957,
+      "pop2010": 8451644,
+      "gdpStart": 28718840000,
+      "gdpEnd": 232239257000,
+      "elderlyShare": 10.37
+    },
+    {
+      "ibgeId": 24,
+      "uf": "RN",
+      "name": "Rio Grande do Norte",
+      "pop2022": 3302729,
+      "pop2010": 3168027,
+      "gdpStart": 13566803000,
+      "gdpEnd": 101740275000,
+      "elderlyShare": 10.519999999999998
+    },
+    {
+      "ibgeId": 25,
+      "uf": "PB",
+      "name": "Paraíba",
+      "pop2022": 3974687,
+      "pop2010": 3766528,
+      "gdpStart": 12747021000,
+      "gdpEnd": 96963174000,
+      "elderlyShare": 11.02
+    },
+    {
+      "ibgeId": 26,
+      "uf": "PE",
+      "name": "Pernambuco",
+      "pop2022": 9058931,
+      "pop2010": 8796055,
+      "gdpStart": 36056032000,
+      "gdpEnd": 270474919000,
+      "elderlyShare": 10.189999999999998
+    },
+    {
+      "ibgeId": 27,
+      "uf": "AL",
+      "name": "Alagoas",
+      "pop2022": 3127683,
+      "pop2010": 3120887,
+      "gdpStart": 11536853000,
+      "gdpEnd": 89688932000,
+      "elderlyShare": 8.940000000000001
+    },
+    {
+      "ibgeId": 28,
+      "uf": "SE",
+      "name": "Sergipe",
+      "pop2022": 2210004,
+      "pop2010": 2067852,
+      "gdpStart": 10332494000,
+      "gdpEnd": 60816662000,
+      "elderlyShare": 9.15
+    },
+    {
+      "ibgeId": 29,
+      "uf": "BA",
+      "name": "Bahia",
+      "pop2022": 14141626,
+      "pop2010": 14017071,
+      "gdpStart": 58842976000,
+      "gdpEnd": 430987853000,
+      "elderlyShare": 10.639999999999999
+    },
+    {
+      "ibgeId": 31,
+      "uf": "MG",
+      "name": "Minas Gerais",
+      "pop2022": 20539989,
+      "pop2010": 19597330,
+      "gdpStart": 124071066000,
+      "gdpEnd": 971977551000,
+      "elderlyShare": 12.39
+    },
+    {
+      "ibgeId": 32,
+      "uf": "ES",
+      "name": "Espírito Santo",
+      "pop2022": 3833712,
+      "pop2010": 3514952,
+      "gdpStart": 27048997000,
+      "gdpEnd": 209829732000,
+      "elderlyShare": 11.249999999999998
+    },
+    {
+      "ibgeId": 33,
+      "uf": "RJ",
+      "name": "Rio de Janeiro",
+      "pop2022": 16055174,
+      "pop2010": 15989929,
+      "gdpStart": 184310915000,
+      "gdpEnd": 1172871443000,
+      "elderlyShare": 13.109999999999998
+    },
+    {
+      "ibgeId": 35,
+      "uf": "SP",
+      "name": "São Paulo",
+      "pop2022": 44411238,
+      "pop2010": 41262199,
+      "gdpStart": 518878815000,
+      "gdpEnd": 3444814033000,
+      "elderlyShare": 11.910000000000002
+    },
+    {
+      "ibgeId": 41,
+      "uf": "PR",
+      "name": "Paraná",
+      "pop2022": 11444380,
+      "pop2010": 10444526,
+      "gdpStart": 88235715000,
+      "gdpEnd": 670919162000,
+      "elderlyShare": 11.340000000000002
+    },
+    {
+      "ibgeId": 42,
+      "uf": "SC",
+      "name": "Santa Catarina",
+      "pop2022": 7610361,
+      "pop2010": 6248436,
+      "gdpStart": 54481893000,
+      "gdpEnd": 513392973000,
+      "elderlyShare": 10.430000000000001
+    },
+    {
+      "ibgeId": 43,
+      "uf": "RS",
+      "name": "Rio Grande do Sul",
+      "pop2022": 10882965,
+      "pop2010": 10693929,
+      "gdpStart": 98847211000,
+      "gdpEnd": 650107022000,
+      "elderlyShare": 14.07
+    },
+    {
+      "ibgeId": 50,
+      "uf": "MS",
+      "name": "Mato Grosso do Sul",
+      "pop2022": 2757013,
+      "pop2010": 2449024,
+      "gdpStart": 16440424000,
+      "gdpEnd": 184402118000,
+      "elderlyShare": 9.590000000000002
+    },
+    {
+      "ibgeId": 51,
+      "uf": "MT",
+      "name": "Mato Grosso",
+      "pop2022": 3658649,
+      "pop2010": 3035122,
+      "gdpStart": 19190653000,
+      "gdpEnd": 273008586000,
+      "elderlyShare": 7.7
+    },
+    {
+      "ibgeId": 52,
+      "uf": "GO",
+      "name": "Goiás",
+      "pop2022": 7056495,
+      "pop2010": 6001789,
+      "gdpStart": 38629365000,
+      "gdpEnd": 336746975000,
+      "elderlyShare": 9.19
+    },
+    {
+      "ibgeId": 53,
+      "uf": "DF",
+      "name": "Distrito Federal",
+      "pop2022": 2817381,
+      "pop2010": 2572159,
+      "gdpStart": 53902200000,
+      "gdpEnd": 365669108000,
+      "elderlyShare": 8.82
+    }
+  ]
+}
