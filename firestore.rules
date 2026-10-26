@@ -44,7 +44,7 @@ service cloud.firestore {
       return request.auth != null
         && d.keys().hasOnly(['missionId', 'office', 'uf', 'uid', 'initials', 'score', 'territory',
                              'yearsInOffice', 'laws', 'quiz', 'objectivesMet', 'separation',
-                             'modelVersion', 'createdAt'])
+                             'modelVersion', 'createdAt', 'justice', 'green', 'season'])
         && d.uid == request.auth.uid
         && d.missionId is string && d.missionId.size() <= 40
         && d.office in ['vereador', 'prefeito', 'deputado-estadual', 'governador',
@@ -61,7 +61,11 @@ service cloud.firestore {
         && d.score == d.territory + d.yearsInOffice + d.laws + d.quiz + d.objectivesMet * 100
         && d.separation in ['amigavel', 'intermediaria', 'conflituosa']
         && d.modelVersion is int
-        && d.createdAt == request.time;
+        && d.createdAt == request.time
+        // Rankings temáticos (opcionais em entradas antigas).
+        && (!('justice' in d) || (d.justice is int && d.justice >= 0 && d.justice <= 500))
+        && (!('green' in d) || (d.green is int && d.green >= 0 && d.green <= 100))
+        && (!('season' in d) || (d.season is string && d.season.matches('^[0-9]{4}-T[1-4]$')));
     }
   }
 }

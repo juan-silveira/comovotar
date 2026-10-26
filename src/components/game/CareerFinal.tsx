@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/auth'
 import { fmtNum, lowerFirst } from '../../lib/format'
 import { unlockedAchievements } from '../../model/achievements'
 import { legacyHeadlines } from '../../model/legacy'
+import { socialSeries } from '../../model/social'
 import { ObjectivesPanel } from './ObjectivesPanel'
 import { difficultyOf } from '../../model/difficulty'
 import { INITIALS_RE, normalizeInitials, rememberInitials, savedInitials, submitScore, type SubmitResult } from '../../lib/storage'
@@ -42,6 +43,8 @@ export function CareerFinal() {
           quiz: s.quiz,
           objectivesMet: s.objectivesMet,
           separation: mission.separation,
+          justice: (soc[0].poverty - soc[soc.length - 1].poverty) * 10,
+          green: (1 - soc[soc.length - 1].deforestation / soc[0].deforestation) * 100,
         }),
       )
     } catch (e) {
@@ -58,6 +61,7 @@ export function CareerFinal() {
     ['Objetivos do cenário', s.objectives, '100 pontos por objetivo nacional cumprido.'],
   ]
   const headlines = legacyHeadlines(career, input, results)
+  const soc = socialSeries(career, results, Math.min(career.t, results.length - 1))
   const medals = unlockedAchievements({ career, input, results })
 
   async function share() {

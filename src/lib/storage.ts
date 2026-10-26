@@ -165,8 +165,20 @@ export interface LeaderboardEntry {
   separation: SeparationType
   modelVersion: number
   createdAt: Date
+  /** Queda da pobreza no Brasil, em décimos de ponto (ranking “mais justo”) */
+  justice?: number
+  /** Queda do desmatamento na Amazônia, % (ranking “mais sustentável”) */
+  green?: number
+  /** Temporada (trimestre) em que a pontuação foi feita, ex.: 2026-T4 */
+  season?: string
   /** Verdadeiro se for a entrada do próprio jogador */
   mine?: boolean
+}
+
+export type RankingSort = 'score' | 'territory' | 'justice' | 'green'
+
+export function currentSeason(date: Date = new Date()): string {
+  return `${date.getFullYear()}-T${Math.floor(date.getMonth() / 3) + 1}`
 }
 
 export const INITIALS_RE = /^[A-Z]{2,3}$/
@@ -194,7 +206,7 @@ function entryId(missionId: string, office: Office, uid: string) {
  */
 export async function submitScore(
   uid: string,
-  entry: Omit<LeaderboardEntry, 'createdAt' | 'mine' | 'modelVersion'>,
+  entry: Omit<LeaderboardEntry, 'createdAt' | 'mine' | 'modelVersion' | 'season'>,
 ): Promise<SubmitResult> {
   if (!INITIALS_RE.test(entry.initials)) throw new Error('Iniciais inválidas: use 2 ou 3 letras.')
   const id = entryId(entry.missionId, entry.office, uid)
@@ -212,6 +224,9 @@ export async function submitScore(
     objectivesMet: entry.objectivesMet,
     separation: entry.separation,
     modelVersion: MODEL_VERSION,
+    justice: Math.max(0, Math.min(500, Math.round(entry.justice ?? 0))),
+    green: Math.max(0, Math.min(100, Math.round(entry.green ?? 0))),
+    season: currentSeason(),
   }
   if (db) {
     const ref = doc(db, 'leaderboard', id)
@@ -227,17 +242,18 @@ export async function submitScore(
   return 'novo-recorde'
 }
 
-export async function topScores(missionId: string, office: Office, uid: string | null, max = 50): Promise<LeaderboardEntry[]> {
+export async function topScores(
+  missionId: string,
+  office: Office,
+  uid: string | null,
+  sort: RankingSort = 'score',
+  season: string | null = null,
+  max = 50,
+): Promise<LeaderboardEntry[]> {
   if (db) {
-    const snap = await getDocs(
-      query(
-        collection(db, 'leaderboard'),
-        where('missionId', '==', missionId),
-        where('office', '==', office),
-        orderBy('score', 'desc'),
-        limit(max),
-      ),
-    )
+    const filters = [where('missionId', '==', missionId), where('office', '==', office)]
+    if (season) filters.push(where('season', '==', season))
+    const snap = await getDocs(query(collection(db, 'leaderboard'), ...filters, orderBy(season ? 'score' : sort, 'desc'), limit(max)))
     return snap.docs.map((d) => {
       const data = d.data()
       return {
@@ -254,13 +270,16 @@ export async function topScores(missionId: string, office: Office, uid: string |
         separation: data.separation,
         modelVersion: data.modelVersion,
         createdAt: toDate(data.createdAt),
+        justice: data.justice,
+        green: data.green,
+        season: data.season,
         mine: uid !== null && data.uid === uid,
       }
     })
   }
   return readLocal<LeaderboardEntry & { id: string }>(LOCAL_BOARD)
-    .filter((e) => e.missionId === missionId && e.office === office)
-    .sort((a, b) => b.score - a.score)
+    .filter((e) => e.missionId === missionId && e.office === office && (!season || e.season === season))
+    .sort((a, b) => ((season ? b.score : (b[sort] ?? 0)) as number) - ((season ? a.score : (a[sort] ?? 0)) as number))
     .slice(0, max)
     .map((e) => ({ ...e, createdAt: new Date(e.createdAt), mine: uid !== null && e.id.endsWith(`__${uid}`) }))
 }
