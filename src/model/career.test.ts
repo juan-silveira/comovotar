@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
 import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
+import { campaignCeiling, initialWealth, statsFor } from './wealth'
 import { budgetOutcome, emendaValue, findBudgetOption } from './budget'
 import { drawClimate } from './climate'
 import { congressPassProbability, institutionsYear, INITIAL_INSTITUTIONS, senateApproval, DEFAULT_INSTITUTIONS_COEFFICIENTS } from './institutions'
@@ -144,6 +145,53 @@ describe('promessas de campanha', () => {
 
     const campaign = { ...base, promises: [{ id: 'servidores-2x', office: 'governador' as const, year: 7, dueYear: 11, status: 'campanha' as const }] }
     expect(campaignBonus(campaign, 7)).toBe(8)
+  })
+})
+
+describe('patrimônio, propinas e investigação', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+
+  it('patrimônio inicial fica entre os quartis reais declarados ao TSE', () => {
+    const { stats } = statsFor('deputado-federal')
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const w = initialWealth('deputado-federal', seed)
+      expect(w).toBeGreaterThanOrEqual(stats.p25 * 0.95)
+      expect(w).toBeLessThanOrEqual(stats.p75 * 1.05)
+    }
+  })
+
+  it('aceitar propina aumenta patrimônio e exposição; condenação gera inelegibilidade', () => {
+    const dep = { ...newCareer({ office: 'deputado-federal', uf: 'SP', municipio: null, party: 'UDC' }), t: 1 }
+    const offer = { kind: 'oferta' as const, offerId: 'voto', amount: 1_000_000 }
+    const after = resolveItem(dep, offer, 'aceitar', input, results)
+    expect(after.wealth).toBe(dep.wealth + 1_000_000)
+    expect(after.exposure).toBe(3)
+
+    // Caso no julgamento, com delação: condenação certa.
+    const trial = settleYear(
+      { ...after, t: 2, criminalCase: { stage: 'julgamento', startYear: 0, nextYear: 2, amount: 1_000_000, defense: 'delacao' } },
+      input,
+      results,
+    )
+    expect(trial.office).toBeNull()
+    expect(trial.ineligibleUntil).toBe(10)
+    expect(trial.criminalCase).toBeNull()
+    expect(canRunFor(trial, 'senador', 7)).toBe(false)
+    expect(canRunFor(trial, 'senador', 10)).toBe(true)
+  })
+
+  it('denunciar rende aprovação e custa capital; caixa dois rende votos e exposição', () => {
+    const dep = { ...newCareer({ office: 'deputado-federal', uf: 'SP', municipio: null, party: 'UDC' }), t: 1, capital: 5, wealth: 5_000_000 }
+    const denounced = resolveItem(dep, { kind: 'oferta', offerId: 'voto', amount: 1_000_000 }, 'denunciar', input, results)
+    expect(denounced.approval).toBeGreaterThan(dep.approval)
+    expect(denounced.capital).toBe(3)
+    const ceiling = campaignCeiling('deputado-federal', 46e6)
+    expect(ceiling).toBe(3_170_000)
+    const c2 = resolveItem(dep, { kind: 'campanha', office: 'deputado-federal', ceiling }, 'caixa2', input, results)
+    expect(c2.wealth).toBe(5_000_000 - Math.round(ceiling * 0.3))
+    expect(c2.exposure).toBe(3)
+    expect(campaignBonus(c2, 2)).toBe(5)
   })
 })
 

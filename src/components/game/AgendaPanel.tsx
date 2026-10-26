@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { fmtBRL, fmtNum, lowerFirst } from '../../lib/format'
+import { fmtBRL, fmtBRLShort, fmtNum, lowerFirst } from '../../lib/format'
 import { FEASIBILITY_LABELS, promisesFor } from '../../model/promises'
+import { CAMPAIGN_SPEND, convictionChance, ILLICIT_OFFERS, type CampaignSpend } from '../../model/wealth'
 import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
 import { billArguments, billEffectSummary, findBill, type BillTemplate } from '../../model/bills'
 import { canRunFor, CRISIS_OPTIONS, nextElectionOfType, separatismOptions, type CareerState, type TurnItem } from '../../model/career'
@@ -343,6 +344,129 @@ export function AgendaItem({
           />
         </div>
       )
+    case 'oferta': {
+      const offer = ILLICIT_OFFERS.find((o) => o.id === item.offerId)
+      if (!offer) return null
+      return (
+        <div>
+          <Tag>Bastidores</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">{offer.title}</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            {offer.text} Valor oferecido: <strong className="text-ink">{fmtBRL(item.amount)}</strong>. Seu patrimônio hoje:{' '}
+            {fmtBRLShort(career.wealth)}.
+          </p>
+          <p className="mt-2 rounded-lg bg-surface-2 p-2 text-xs text-ink-2">⚖ {offer.law}</p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id={offer.ref} />
+            <LegalRefChip id="lc135" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={[
+              {
+                id: 'aceitar',
+                label: 'Aceitar',
+                pros: [`+${fmtBRL(item.amount)} no seu patrimônio, que pode pagar campanhas.`, '+1 de capital político com quem fez a oferta.'],
+                cons: [
+                  'Aumenta a chance de o esquema vir à tona: reportagem, inquérito, denúncia e julgamento.',
+                  'Se condenado(a): perde o mandato, devolve o dinheiro com multa e fica inelegível por 8 anos.',
+                ],
+              },
+              {
+                id: 'recusar',
+                label: 'Recusar discretamente',
+                pros: ['Nenhum risco para você.'],
+                cons: ['Quem ofereceu pode procurar outro político.'],
+              },
+              {
+                id: 'denunciar',
+                label: 'Denunciar ao Ministério Público',
+                pros: ['+3 de aprovação: eleitores valorizam quem denuncia.'],
+                cons: ['−2 de capital político: colegas passam a desconfiar de você.'],
+              },
+            ]}
+          />
+        </div>
+      )
+    }
+    case 'defesa': {
+      const pct = (d: 'advogado' | 'nenhuma') => Math.round(convictionChance(d) * 100)
+      return (
+        <div>
+          <Tag>Processo criminal</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Você é réu. Como vai se defender?</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            A acusação aponta {fmtBRL(item.amount)} em vantagens indevidas. O julgamento acontece no próximo ano. Toda
+            pessoa acusada tem direito a defesa; a decisão cabe ao tribunal.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="cp317" />
+            <LegalRefChip id="lc135" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={[
+              {
+                id: 'advogado',
+                label: 'Contratar um escritório renomado',
+                disabled: career.wealth < item.lawyerCost,
+                pros: [`Chance de condenação cai para cerca de ${pct('advogado')}%.`],
+                cons: [`Custa ${fmtBRL(item.lawyerCost)} do seu patrimônio${career.wealth < item.lawyerCost ? ' (você não tem esse valor)' : ''}.`],
+              },
+              {
+                id: 'delacao',
+                label: 'Fazer delação premiada',
+                pros: ['Pena reduzida: devolve só o valor recebido, sem multa e sem prisão.'],
+                cons: ['Condenação certa e inelegibilidade de 8 anos.', 'Você entrega outros envolvidos e o seu partido se afasta.'],
+              },
+              {
+                id: 'nenhuma',
+                label: 'Confiar na defensoria e esperar',
+                pros: ['Sem custo.'],
+                cons: [`Chance de condenação de cerca de ${pct('nenhuma')}%, com devolução em dobro.`],
+              },
+            ]}
+          />
+        </div>
+      )
+    }
+    case 'campanha': {
+      const role = ROLES[item.office]
+      return (
+        <div>
+          <Tag>Campanha eleitoral</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Como você vai financiar a campanha para {lowerFirst(role.title)}?</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            O teto de gastos para o cargo é de cerca de <strong className="text-ink">{fmtBRL(item.ceiling)}</strong>. Mais dinheiro
+            paga impulsionamento nas redes, eventos, material e equipe. Seu patrimônio: {fmtBRLShort(career.wealth)}.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="l9504" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={(Object.keys(CAMPAIGN_SPEND) as CampaignSpend[]).map((id) => {
+              const o = CAMPAIGN_SPEND[id]
+              const cost = Math.round(item.ceiling * o.share)
+              return {
+                id,
+                label: o.label,
+                disabled: cost > career.wealth,
+                pros: o.bonus ? [`+${o.bonus} pontos na disputa.`] : ['Nenhum gasto pessoal.'],
+                cons: [
+                  ...(cost ? [`Custa ${fmtBRL(cost)} do seu patrimônio${cost > career.wealth ? ' (você não tem esse valor)' : ''}.`] : ['Menos dinheiro que os adversários que investem.']),
+                  ...(id === 'proprio' ? ['Limite legal: até 10% do teto de gastos.'] : []),
+                  ...(id === 'caixa2' ? ['Crime eleitoral: aumenta muito o risco de investigação e de cassação.'] : []),
+                ],
+              }
+            })}
+          />
+        </div>
+      )
+    }
     case 'promessa': {
       const role = ROLES[item.office]
       return (

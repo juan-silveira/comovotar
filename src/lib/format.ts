@@ -33,6 +33,13 @@ export function fmtBRL(v: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v)
 }
 
+/** Valor compacto para patrimônios: R$ 590 mil, R$ 1,4 mi. */
+export function fmtBRLShort(v: number): string {
+  if (Math.abs(v) >= 1e6) return fmtBRL(v)
+  if (Math.abs(v) >= 1e4) return `R$ ${nf(0).format(v / 1e3)} mil`
+  return fmtBRLFull(v)
+}
+
 export function fmtBRLFull(v: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v)
 }

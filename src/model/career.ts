@@ -5,6 +5,20 @@
 
 import { fmtBRL, lowerFirst } from '../lib/format'
 import { BILLS, findBill, type Level, type Office } from './bills'
+import {
+  CAMPAIGN_SPEND,
+  campaignCeiling,
+  CASE_STAGES,
+  convictionChance,
+  exposureChance,
+  INELIGIBILITY_YEARS,
+  initialWealth,
+  legalYearChange,
+  offerFor,
+  ILLICIT_OFFERS,
+  type CampaignSpend,
+  type CriminalCase,
+} from './wealth'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -93,6 +107,12 @@ export type TurnItem =
   | { kind: 'emendas'; value: number; territoryGdp: number; territory: string }
   /** Promessa de campanha (initial = mandato que já começou com o jogo) */
   | { kind: 'promessa'; office: Office; initial: boolean }
+  /** Proposta ilícita */
+  | { kind: 'oferta'; offerId: string; amount: number }
+  /** Defesa num processo criminal */
+  | { kind: 'defesa'; amount: number; lawyerCost: number }
+  /** Como financiar a campanha */
+  | { kind: 'campanha'; office: Office; ceiling: number }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -172,6 +192,19 @@ export interface CareerState {
   promises: PromiseRecord[]
   /** Escolhas de orçamento e emendas, para avaliar promessas */
   history: ChoiceRecord[]
+  /** Patrimônio pessoal, R$ */
+  wealth: number
+  /** Patrimônio ao fim de cada ano (t) */
+  wealthHistory: { t: number; value: number }[]
+  /** Dinheiro ilícito recebido e ainda não descoberto, R$ */
+  illicitGains: number
+  /** Exposição acumulada: chance de o esquema vir à tona */
+  exposure: number
+  criminalCase: CriminalCase | null
+  /** Ano (t) até o qual o jogador está inelegível (Ficha Limpa) */
+  ineligibleUntil: number | null
+  /** Gastos de campanha que rendem votos na eleição do ano */
+  campaignSpend: { year: number; bonus: number }[]
 }
 
 export const START_CAPITAL = 8
@@ -203,7 +236,15 @@ export function sideOf(partition: Record<UF, Side>, uf: UF): Side {
 }
 
 export function newCareer(setup: PlayerSetup): CareerState {
+  const wealth = initialWealth(setup.office, hashString(`${setup.uf}:${setup.party}:${setup.municipio?.id ?? ''}`))
   return {
+    wealth,
+    wealthHistory: [{ t: 0, value: wealth }],
+    illicitGains: 0,
+    exposure: 0,
+    criminalCase: null,
+    ineligibleUntil: null,
+    campaignSpend: [],
     setup,
     t: 0,
     office: setup.office,
@@ -413,6 +454,12 @@ export function itemKey(item: TurnItem, t: number): string {
       return `emendas:${t}`
     case 'promessa':
       return `promessa:${t}`
+    case 'oferta':
+      return `oferta:${t}`
+    case 'defesa':
+      return `defesa:${t}`
+    case 'campanha':
+      return `campanha:${t}`
   }
 }
 
@@ -500,6 +547,23 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
   // Campanha: promessa para a eleição deste ano (ou para o mandato que começa com o jogo).
   const campaign = campaignOffice(state, next)
   if (campaign) items.push({ kind: 'promessa', office: campaign, initial: state.t === 0 && state.office === campaign && state.nextElection !== next })
+
+  // Financiamento da campanha (anos de eleição).
+  if (campaign && !(state.t === 0 && state.office === campaign && state.nextElection !== next) && campaign !== 'ministro-stf')
+    items.push({
+      kind: 'campanha',
+      office: campaign,
+      ceiling: campaignCeiling(campaign, input.baseline.states[state.setup.uf].pop, state.setup.municipio?.pop),
+    })
+
+  // Propostas ilícitas e defesa em processo.
+  if (office && !state.criminalCase) {
+    const offer = offerFor(office, input.seed, next)
+    if (offer) items.push({ kind: 'oferta', offerId: offer.id, amount: offer.amount(office, state.setup.municipio?.pop ?? 100_000) })
+  }
+  const cc = state.criminalCase
+  if (cc && cc.stage === 'denuncia' && cc.defense === null)
+    items.push({ kind: 'defesa', amount: cc.amount, lawyerCost: Math.round(Math.max(300_000, cc.amount * 0.3)) })
 
   for (const quiz of QUIZZES.filter((q) => q.year === next)) items.push({ kind: 'quiz', quiz })
 
@@ -687,6 +751,25 @@ export function resolveItem(
       return resolveBudget(s, item, optionId, input)
     case 'emendas':
       return resolveEmendas(s, item, optionId, input)
+    case 'oferta':
+      return resolveOffer(s, item, optionId)
+    case 'defesa': {
+      if (!s.criminalCase) return s
+      const defense = optionId as CriminalCase['defense']
+      if (defense === 'advogado') s.wealth = Math.max(0, s.wealth - item.lawyerCost)
+      s.criminalCase = { ...s.criminalCase, defense }
+      if (defense === 'delacao') s.partyLoyalty = Math.max(0, s.partyLoyalty - 30)
+      return s
+    }
+    case 'campanha': {
+      const spend = CAMPAIGN_SPEND[optionId as CampaignSpend] ?? CAMPAIGN_SPEND.fundo
+      const cost = Math.round(item.ceiling * spend.share)
+      if (cost > s.wealth) return s
+      s.wealth -= cost
+      s.exposure += spend.risk
+      if (spend.bonus) s.campaignSpend = [...s.campaignSpend, { year: next, bonus: spend.bonus }]
+      return s
+    }
     case 'promessa': {
       if (optionId === 'nenhuma') return s
       const term = ROLES[item.office].termYears ?? 4
@@ -696,6 +779,32 @@ export function resolveItem(
       return s
     }
   }
+}
+
+function resolveOffer(s: CareerState, item: Extract<TurnItem, { kind: 'oferta' }>, optionId: string): CareerState {
+  const next = s.t + 1
+  const offer = ILLICIT_OFFERS.find((o) => o.id === item.offerId)
+  if (!offer) return s
+  if (optionId === 'aceitar') {
+    s.wealth += item.amount
+    s.illicitGains += item.amount
+    s.exposure += offer.risk
+    s.capital += 1
+  } else if (optionId === 'denunciar') {
+    s.approval = clamp(s.approval + 3)
+    s.capital = Math.max(0, s.capital - 2)
+    s.log = [
+      ...s.log,
+      {
+        year: next,
+        kind: 'info',
+        title: 'Você denunciou uma proposta de corrupção',
+        text: 'O Ministério Público abriu investigação sobre quem fez a oferta. Eleitores aprovam; alguns colegas passam a desconfiar de você.',
+        good: true,
+      },
+    ]
+  }
+  return s
 }
 
 /** Efeito do orçamento: vale no ano seguinte; investimento rende nos anos depois. */
@@ -1076,6 +1185,7 @@ export function municipalSeries(state: CareerState, results: YearResult[]) {
 /** Atualiza aprovação, capital e eleições depois de simular o ano state.t. */
 export function settleYear(state: CareerState, input: SimInput, results: YearResult[]): CareerState {
   const s = settleOffice(state, input, results)
+  settleWealth(s, input)
   // Promessas feitas nesta eleição só valem se o jogador assumiu o cargo prometido.
   // Quem saiu do cargo antes da cobrança não é avaliado pela promessa.
   if (s.promises.some((p) => p.status === 'pendente' && p.dueYear <= s.t && s.office !== p.office))
@@ -1085,6 +1195,67 @@ export function settleYear(state: CareerState, input: SimInput, results: YearRes
       p.status === 'campanha' && p.year === s.t ? { ...p, status: s.office === p.office ? 'pendente' : 'sem-mandato' } : p,
     )
   return s
+}
+
+/** Patrimônio legal do ano e andamento de investigações. */
+function settleWealth(s: CareerState, input: SimInput) {
+  const t = s.t
+  const legal = legalYearChange(s.wealth, s.office, s.setup.municipio?.pop)
+  s.wealth += legal.savings + legal.returns
+  const rng = mulberry32((input.seed ^ hashString(`caso:${t}`)) >>> 0)
+  const cc = s.criminalCase
+  if (!cc) {
+    if (s.exposure > 0 && rng() < exposureChance(s.exposure, input.params.mediaInfluence)) {
+      const stage = CASE_STAGES.reportagem
+      s.criminalCase = { stage: 'reportagem', startYear: t, nextYear: t + 1, amount: s.illicitGains, defense: null }
+      s.approval = clamp(s.approval + stage.approval)
+      s.log.push({ year: t, kind: 'info', title: stage.title, text: stage.text, good: false })
+    }
+  } else if (t >= cc.nextYear) {
+    // Foro por prerrogativa: tribunais superiores costumam levar mais tempo.
+    const slow = s.office && s.office !== 'vereador' && s.office !== 'prefeito' ? 1 : 0
+    if (cc.stage === 'reportagem' || cc.stage === 'inquerito') {
+      const stageId = cc.stage === 'reportagem' ? 'inquerito' : 'denuncia'
+      const stage = CASE_STAGES[stageId]
+      s.criminalCase = { ...cc, stage: stageId, nextYear: t + 1 + slow }
+      s.approval = clamp(s.approval + stage.approval)
+      s.log.push({ year: t, kind: 'info', title: stage.title, text: stage.text, good: false })
+    } else {
+      const convicted = rng() < convictionChance(cc.defense)
+      if (convicted) {
+        const restitution = cc.defense === 'delacao' ? cc.amount : cc.amount * 2
+        s.wealth = Math.max(0, s.wealth - restitution)
+        s.ineligibleUntil = t + INELIGIBILITY_YEARS
+        s.log.push({
+          year: t,
+          kind: 'info',
+          title: cc.defense === 'delacao' ? 'Condenado(a) com pena reduzida pela delação' : 'Condenado(a) por corrupção',
+          text: `Você ${s.office ? 'perde o mandato, ' : ''}devolve ${fmtBRL(restitution)} ${cc.defense === 'delacao' ? '' : '(valor desviado e multa) '}e fica inelegível até ${2023 + t + INELIGIBILITY_YEARS} pela Lei da Ficha Limpa.${cc.defense === 'delacao' ? ' A colaboração evitou a prisão, mas o seu partido se afastou de você.' : ''}`,
+          good: false,
+        })
+        if (s.office) {
+          s.office = null
+          s.nextElection = null
+          s.candidacy = null
+          s.needsCareerChoice = true
+        }
+        s.approval = clamp(s.approval - 10)
+      } else {
+        s.log.push({
+          year: t,
+          kind: 'info',
+          title: 'Absolvido(a) por falta de provas',
+          text: 'O tribunal não considerou as provas suficientes. A suspeita, porém, continua pesando na sua imagem.',
+          good: true,
+        })
+        s.approval = clamp(s.approval - 2)
+      }
+      s.criminalCase = null
+      s.illicitGains = 0
+      s.exposure = 0
+    }
+  }
+  s.wealthHistory = [...s.wealthHistory, { t, value: s.wealth }]
 }
 
 /** O eleitor cobra as promessas cujo mandato termina neste ano, antes de votar. */
@@ -1116,9 +1287,10 @@ function chargePromises(s: CareerState) {
 
 /** Bônus de votos das promessas feitas para a eleição do ano t. */
 export function campaignBonus(state: CareerState, t: number): number {
-  return state.promises
+  const promises = state.promises
     .filter((p) => p.status === 'campanha' && p.year === t)
     .reduce((acc, p) => acc + (findPromise(p.id)?.voteBonus ?? 0), 0)
+  return promises + state.campaignSpend.filter((c) => c.year === t).reduce((acc, c) => acc + c.bonus, 0)
 }
 
 function settleOffice(state: CareerState, input: SimInput, results: YearResult[]): CareerState {
@@ -1273,6 +1445,7 @@ export function chooseNextOffice(state: CareerState, office: Office | null): Car
  * mandatos seguidos precisam ficar um mandato inteiro fora antes de voltar.
  */
 export function canRunFor(state: CareerState, office: Office, t: number): boolean {
+  if (state.ineligibleUntil !== null && t < state.ineligibleUntil) return false
   const limited = state.termLimited.filter((x) => x.office === office)
   if (limited.length === 0) return true
   const last = limited[limited.length - 1].year
@@ -1286,7 +1459,10 @@ function runCandidacy(state: CareerState, office: Office, seed: number): CareerS
       year: s.t,
       kind: 'eleicao',
       title: 'Candidatura impugnada',
-      text: 'Ainda não se passou um mandato inteiro desde os seus dois mandatos seguidos neste cargo (art. 14, § 5º).',
+      text:
+        s.ineligibleUntil !== null && s.t < s.ineligibleUntil
+          ? `Você está inelegível até ${2023 + s.ineligibleUntil} pela Lei da Ficha Limpa (LC 135/2010).`
+          : 'Ainda não se passou um mandato inteiro desde os seus dois mandatos seguidos neste cargo (art. 14, § 5º).',
       good: false,
     })
     s.candidacy = null

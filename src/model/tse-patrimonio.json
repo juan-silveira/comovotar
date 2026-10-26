@@ -1,0 +1,135 @@
+{
+  "fetchedAt": "2026-10-26",
+  "source": "TSE, Portal de Dados Abertos: candidatos e bens declarados (2022, 2024 e 2026)",
+  "offices": {
+    "prefeito": {
+      "year": 2024,
+      "group": "eleitos",
+      "n": 5563,
+      "p25": 177480,
+      "median": 459420,
+      "p75": 1098390,
+      "p90": 2780082,
+      "zeroShare": 0.049793277008808194,
+      "millionShare": 0.2743124213553838,
+      "candidates": {
+        "n": 15697,
+        "p25": 112000,
+        "median": 372000,
+        "p75": 955000,
+        "p90": 2330000,
+        "zeroShare": 0.09390329362298529,
+        "millionShare": 0.2388991527043384
+      }
+    },
+    "vereador": {
+      "year": 2024,
+      "group": "eleitos",
+      "n": 58174,
+      "p25": 7959,
+      "median": 92000,
+      "p75": 281205,
+      "p90": 621802,
+      "zeroShare": 0.20055351187815862,
+      "millionShare": 0.04936913397737821,
+      "candidates": {
+        "n": 432032,
+        "p25": 0,
+        "median": 18000,
+        "p75": 150000,
+        "p90": 405000,
+        "zeroShare": 0.3787103733056811,
+        "millionShare": 0.028081253240500703
+      }
+    },
+    "deputado-estadual": {
+      "year": 2026,
+      "group": "eleitos",
+      "n": 1059,
+      "p25": 407382,
+      "median": 1060381,
+      "p75": 2500694,
+      "p90": 4825557,
+      "zeroShare": 0.03871576959395656,
+      "millionShare": 0.5240793201133145,
+      "candidates": {
+        "n": 11728,
+        "p25": 0,
+        "median": 93000,
+        "p75": 585000,
+        "p90": 1697562,
+        "zeroShare": 0.3541950886766712,
+        "millionShare": 0.16635402455661663
+      }
+    },
+    "deputado-federal": {
+      "year": 2026,
+      "group": "eleitos",
+      "n": 513,
+      "p25": 590259,
+      "median": 1406589,
+      "p75": 3173518,
+      "p90": 6280004,
+      "zeroShare": 0.01364522417153996,
+      "millionShare": 0.6023391812865497,
+      "candidates": {
+        "n": 7803,
+        "p25": 0,
+        "median": 117594,
+        "p75": 664988,
+        "p90": 1994888,
+        "zeroShare": 0.3288478790208894,
+        "millionShare": 0.18569780853517878
+      }
+    },
+    "governador": {
+      "year": 2026,
+      "group": "candidatos",
+      "n": 201,
+      "p25": 69197,
+      "median": 502200,
+      "p75": 1702154,
+      "p90": 4753761,
+      "zeroShare": 0.18407960199004975,
+      "millionShare": 0.3681592039800995
+    },
+    "senador": {
+      "year": 2026,
+      "group": "eleitos",
+      "n": 54,
+      "p25": 1067423,
+      "median": 1879758,
+      "p75": 3640025,
+      "p90": 21979509,
+      "zeroShare": 0.037037037037037035,
+      "millionShare": 0.7592592592592593,
+      "candidates": {
+        "n": 319,
+        "p25": 92000,
+        "median": 655441,
+        "p75": 2379465,
+        "p90": 8595292,
+        "zeroShare": 0.16614420062695925,
+        "millionShare": 0.42946708463949845
+      }
+    }
+  },
+  "reelectedGrowth": {
+    "deputado-estadual": {
+      "n": 586,
+      "medianGrowth": 0.6403361715938967,
+      "grewShare": 0.8174061433447098,
+      "doubledShare": 0.3771331058020478,
+      "median2022": 845455,
+      "median2026": 1540028
+    },
+    "deputado-federal": {
+      "n": 285,
+      "medianGrowth": 0.41126916718206674,
+      "grewShare": 0.7508771929824561,
+      "doubledShare": 0.28771929824561404,
+      "median2022": 1085000,
+      "median2026": 1612676
+    }
+  }
+}

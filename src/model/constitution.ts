@@ -288,6 +288,27 @@ export const CONSTITUTION: Record<string, LegalRef> = {
     summary:
       'Se, a cada dois meses, a receita indicar que a meta fiscal não será cumprida, o governo deve bloquear (contingenciar) despesas não obrigatórias. Emendas impositivas também podem ser bloqueadas na mesma proporção.',
   },
+  'cp317': {
+    id: 'cp317',
+    ref: 'Código Penal, arts. 312 e 317; Lei 8.429/1992',
+    title: 'Corrupção, peculato e improbidade',
+    summary:
+      'Corrupção passiva é solicitar ou receber vantagem indevida em razão do cargo (pena de 2 a 12 anos). Peculato é desviar dinheiro público de que se tem a posse pelo cargo, como na “rachadinha”. A Lei de Improbidade prevê ainda perda da função, ressarcimento, multa e suspensão dos direitos políticos.',
+  },
+  'lc135': {
+    id: 'lc135',
+    ref: 'LC 135/2010 (Lei da Ficha Limpa)',
+    title: 'Inelegibilidade',
+    summary:
+      'Quem é condenado por órgão colegiado por crimes como corrupção, ou tem o mandato cassado, fica inelegível por 8 anos. A lei nasceu de um projeto de iniciativa popular com mais de 1,6 milhão de assinaturas.',
+  },
+  'l9504': {
+    id: 'l9504',
+    ref: 'Lei 9.504/1997, art. 23; Código Eleitoral, art. 350',
+    title: 'Financiamento de campanha',
+    summary:
+      'Candidatos podem usar recursos próprios até 10% do teto de gastos do cargo (autofinanciamento). Gastar dinheiro não declarado à Justiça Eleitoral (caixa dois) é crime e pode levar à cassação por abuso de poder econômico. O TSE fixa o teto de gastos de cada cargo; em 2026 manteve os valores de 2022.',
+  },
   'adct88': {
     id: 'adct88',
     ref: 'ADCT, art. 88 e LC 157/2016',

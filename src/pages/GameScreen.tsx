@@ -12,6 +12,7 @@ import { HowToPlay, howToSeen } from '../components/game/HowToPlay'
 import { IndicatorList } from '../components/game/IndicatorList'
 import { buildIndicators, type Indicator } from '../components/game/indicators'
 import { findPromise, type PromiseRecord } from '../model/promises'
+import { WealthPanel } from '../components/game/WealthPanel'
 import { NewsFeed } from '../components/game/NewsFeed'
 import { ComponentsTable, WhyPanel } from '../components/panels'
 import { Button, Card, Term } from '../components/ui'
@@ -171,6 +172,7 @@ export function GameScreen() {
           )}
           <Mini label="Leis aprovadas" value={String(career.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').length)} />
         </div>
+        <WealthPanel career={career} mediaInfluence={input.params.mediaInfluence} />
         {career.promises.length > 0 && (
           <div className="rounded-xl border border-line bg-surface p-3">
             <h3 className="text-sm font-semibold text-ink">📣 Suas promessas</h3>

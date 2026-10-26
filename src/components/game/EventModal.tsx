@@ -16,6 +16,9 @@ const HEADER: Record<TurnItem['kind'], { label: string; icon: string }> = {
   orcamento: { label: 'Orçamento do ano', icon: '💰' },
   emendas: { label: 'Suas emendas', icon: '🧾' },
   promessa: { label: 'Campanha', icon: '📣' },
+  oferta: { label: 'Proposta nos bastidores', icon: '🤫' },
+  defesa: { label: 'Processo', icon: '⚖' },
+  campanha: { label: 'Dinheiro da campanha', icon: '💸' },
 }
 
 /** Carta de evento em pop-up, uma decisão por vez. */

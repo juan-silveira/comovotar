@@ -68,6 +68,8 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 **Objetivo:** mostrar que querer não basta.
 
+- [x] **Patrimônio, propinas e investigação:** patrimônio inicial na faixa real declarada pelos eleitos ao TSE (2024/2026, só estatísticas por cargo, `npm run update-tse`); cresce com o salário poupado e rendimentos. Propostas ilícitas por cargo (licitação dirigida, rachadinha, venda de voto, superfaturamento de emenda, palestra paga por parte interessada): aceitar, recusar ou denunciar. A exposição pode virar reportagem, inquérito, denúncia e julgamento (defesa com advogado, delação ou nada); condenação tira o mandato, cobra o dinheiro e torna inelegível por 8 anos (Ficha Limpa). O patrimônio paga a campanha: autofinanciamento (até 10% do teto de 2026) ou caixa dois.
+
 - [ ] **Obstrução:** pedidos de vista, kit obstrução, falta de quórum proposital, retirada de pauta.
 - [ ] **Centrão e chantagem:** preço dos votos sobe quando a aprovação cai; cargos em estatais; "pautas-bomba" quando o governo enfraquece.
 - [ ] **CPIs:** a oposição coleta 1/3 de assinaturas e o governo tenta barrar; desgaste na mídia e possíveis descobertas.

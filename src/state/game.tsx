@@ -111,6 +111,13 @@ function load(): GameState {
           customBills: c.customBills ?? [],
           promises: c.promises ?? [],
           history: c.history ?? [],
+          wealth: c.wealth ?? 1_000_000,
+          wealthHistory: c.wealthHistory ?? [{ t: c.t ?? 0, value: c.wealth ?? 1_000_000 }],
+          illicitGains: c.illicitGains ?? 0,
+          exposure: c.exposure ?? 0,
+          criminalCase: c.criminalCase ?? null,
+          ineligibleUntil: c.ineligibleUntil ?? null,
+          campaignSpend: c.campaignSpend ?? [],
         }
         for (const cb of g.career.customBills) registerCustom(cb)
       }
