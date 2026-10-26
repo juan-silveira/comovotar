@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { markTipSeen, seenTips, TIPS } from './tips'
 import { playCue } from '../../lib/settings'
+import { findPressure } from '../../model/pressure'
 import type { CareerState, TurnItem } from '../../model/career'
 import type { OFFICE_ORDER } from '../../model/roles'
 import { AgendaItem } from './AgendaPanel'
@@ -54,7 +55,8 @@ export function EventModal({
     if (show && !d.open) d.showModal()
     if (!show && d.open) d.close()
   }, [show])
-  const h = item ? HEADER[item.kind] : null
+  const pressure = item?.kind === 'pressao' ? findPressure(item.eventId) : undefined
+  const h = item ? (pressure ? { label: pressure.group, icon: pressure.icon } : HEADER[item.kind]) : null
   // Dica de primeira vez para este tipo de decisão.
   const [seen, setSeen] = useState(seenTips)
   const tip = item && TIPS[item.kind] && !seen.has(item.kind) ? TIPS[item.kind] : null

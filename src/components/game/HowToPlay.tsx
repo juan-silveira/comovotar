@@ -27,6 +27,7 @@ export function HowToPlay({ open, office, onClose }: { open: boolean; office: Of
     if (!open && d.open) d.close()
   }, [open])
   const role = office ? ROLES[office] : null
+  const judge = office === 'ministro-stf'
   const steps = [
     {
       icon: '🎯',
@@ -38,18 +39,26 @@ export function HowToPlay({ open, office, onClose }: { open: boolean; office: Of
     {
       icon: '🗓',
       title: 'Cada turno é um ano',
-      text: 'No início de cada ano chegam cartas com decisões: votações, crises, propostas do governo, perguntas. Escolha uma opção em cada carta; depois toque em “Próximo turno” para ver o que aconteceu.',
+      text: judge
+        ? 'No início de cada ano chegam processos para você julgar: ações contra leis, recursos, pedidos de liminar e decisões do governo questionadas no tribunal. Escolha como votar em cada um; depois toque em “Próximo turno” para ver o que aconteceu.'
+        : 'No início de cada ano chegam cartas com decisões: votações, crises, propostas do governo, perguntas. Escolha uma opção em cada carta; depois toque em “Próximo turno” para ver o que aconteceu.',
     },
     {
       icon: '📊',
       title: 'Acompanhe o país',
       text: 'Na aba País, cada indicador mostra se está bom, em atenção ou ruim. Toque nele para entender o que é, o que ele afeta e do que depende. O mapa mostra as diferenças entre os estados.',
     },
-    {
-      icon: '⚖',
-      title: 'Querer não basta',
-      text: 'Para mudar algo, proponha um projeto de lei: ele passa por comissões, plenário, outra casa, sanção ou veto e pode ser barrado no STF. Adversários podem votar contra uma boa ideia só por estratégia. Sua popularidade e seu capital político decidem até onde você chega, e a reeleição.',
-    },
+    judge
+      ? {
+          icon: '⚖',
+          title: 'Julgar não é legislar',
+          text: 'Você não propõe leis nem disputa eleições: o cargo é vitalício até os 75 anos, e o ministro só sai antes por impeachment no Senado, o que nunca aconteceu. O tribunal só age quando provocado. Decidir sozinho (liminar) é rápido, mas expõe você a críticas; levar ao plenário dá mais legitimidade. Sua legitimidade depende de decisões coerentes e fundamentadas.',
+        }
+      : {
+          icon: '⚖',
+          title: 'Querer não basta',
+          text: 'Para mudar algo, proponha um projeto de lei: ele passa por comissões, plenário, outra casa, sanção ou veto e pode ser barrado no STF. Adversários podem votar contra uma boa ideia só por estratégia. Sua popularidade e seu capital político decidem até onde você chega, e a reeleição.',
+        },
   ]
   const s = steps[step]
   const close = () => {

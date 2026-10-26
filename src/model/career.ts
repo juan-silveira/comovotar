@@ -32,6 +32,7 @@ import {
 import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
 import { difficultyOf, type Difficulty } from './difficulty'
 import { drawForeign, drawPressure, findPressure } from './pressure'
+import { drawLocalEvents } from './localEvents'
 import { inflationPenalty, macroSeries } from './macro'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
@@ -634,6 +635,10 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
       items.push({ kind: 'pressao', eventId: 'lrf-pessoal' })
     const foreign = drawForeign(office, mulberry32((input.seed ^ hashString(`externa:${next}:${office}`)) >>> 0))
     if (foreign && foreign.id !== ev?.id) items.push({ kind: 'pressao', eventId: foreign.id })
+    // Pautas próprias do cargo: processos do STF e decisões municipais e estaduais.
+    const seen = state.history.filter((h) => h.kind === 'pressao').map((h) => ({ id: h.id.split(':')[0], year: h.year }))
+    for (const e of drawLocalEvents(office, mulberry32((input.seed ^ hashString(`pauta:${next}:${office}`)) >>> 0), seen, next))
+      if (!items.some((i) => i.kind === 'pressao' && i.eventId === e.id)) items.push({ kind: 'pressao', eventId: e.id })
   }
 
   // Financiamento da campanha (anos de eleição).
@@ -919,7 +924,7 @@ function resolvePressure(s: CareerState, item: Extract<TurnItem, { kind: 'pressa
     else s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: 1, growth: growth * (s.office === 'governador' ? 0.6 : 0.3) }]
   }
   s.history = [...s.history, { year: next, kind: 'pressao', id: `${ev.id}:${opt.id}` }]
-  const outcome = opt.success === undefined ? '' : ok ? opt.okText : opt.failText
+  const outcome = opt.success === undefined ? (opt.okText ?? '') : ok ? opt.okText : opt.failText
   s.log = [...s.log, { year: next, kind: 'info', title: `${ev.group}: ${lowerFirst(opt.label)}`, text: [ev.title, outcome].filter(Boolean).join('. '), good: ok && (opt.approval ?? 0) >= 0 }]
   return s
 }

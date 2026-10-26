@@ -365,6 +365,17 @@ describe('LRF e balança comercial', () => {
   })
 })
 
+describe('pautas do STF e locais', () => {
+  it('o ministro do STF vê o que o tribunal decidiu de verdade', () => {
+    const input = missionInput(mission, 30, [])
+    const results = simulate(input)
+    const min = { ...newCareer({ office: 'ministro-stf', uf: 'DF', municipio: null, party: '' }), t: 2 }
+    const out = resolveItem(min, { kind: 'pressao', eventId: 'stf-segunda-instancia' }, 'plenario-favor', input, results)
+    expect(out.log.at(-1)!.text).toMatch(/Na vida real, em 2019/)
+    expect(out.approval).toBe(min.approval + 2)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })

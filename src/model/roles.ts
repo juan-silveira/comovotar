@@ -218,7 +218,7 @@ export const ROLES: Record<Office, RoleInfo> = {
     territory: 'bloco',
     body: 'Supremo Tribunal Federal',
     termYears: null,
-    reelection: 'Vitalício até os 75 anos; não há eleição.',
+    reelection: 'Cargo vitalício até a aposentadoria compulsória aos 75 anos (EC 88/2015); não há eleição nem reeleição. O ministro só perde o cargo por impeachment julgado pelo Senado (art. 52, II), o que nunca aconteceu no Brasil.',
     election: null,
     can: [
       'Julgar ações de inconstitucionalidade, omissão e descumprimento de preceito fundamental.',

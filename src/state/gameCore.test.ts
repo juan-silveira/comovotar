@@ -46,3 +46,32 @@ describe('repetição da partida (verificação do ranking)', () => {
     expect(replay(forged)).toBeNull()
   })
 })
+
+describe('ritmo de decisões', () => {
+  it('todo cargo tem pelo menos 15 decisões nos primeiros 4 anos', () => {
+    const offices = ['vereador', 'prefeito', 'deputado-estadual', 'governador', 'deputado-federal', 'senador', 'presidente', 'ministro-stf'] as const
+    for (const office of offices) {
+      let s: GameState = reducer({ missionId: null, career: null }, {
+        type: 'start',
+        missionId: MISSIONS[0].id,
+        setup: { office, uf: 'PE', municipio: office === 'vereador' || office === 'prefeito' ? { id: 2611606, name: 'Recife', uf: 'PE', pop: 1488920, gdp: 6e10 } : null, party: 'PMF' },
+      })
+      let decisions = 0
+      for (let y = 0; y < 4; y++) {
+        for (let guard = 0; guard < 40; guard++) {
+          const { input, results } = withResults(findMission(s.missionId!)!, s.career!)
+          const items = pendingItems(s.career!, input, results)
+          if (!items.length) break
+          const it = items[0]
+          const before = s
+          const opt = it.kind === 'card' ? it.card.options[0].id : it.kind === 'quiz' ? it.quiz.options[0].id : 'x'
+          s = it.kind === 'career' ? reducer(s, { type: 'career', office: null }) : reducer(s, { type: 'resolve', item: it, optionId: opt })
+          if (s === before) break
+          decisions++
+        }
+        s = reducer(s, { type: 'advance' })
+      }
+      expect(decisions, office).toBeGreaterThanOrEqual(15)
+    }
+  })
+})

@@ -176,7 +176,7 @@ export function GameScreen() {
     carreira: (
       <div className="space-y-3">
         <div className="tnum grid grid-cols-2 gap-2">
-          <Mini label="Popularidade" value={`${Math.round(career.approval)}%`} term="aprovacao" />
+          <Mini label={office === 'ministro-stf' ? 'Legitimidade' : 'Popularidade'} value={`${Math.round(career.approval)}%`} term="aprovacao" />
           <Mini label="Capital político" value={String(career.capital)} term="capital-politico" />
           {office && ['vereador', 'deputado-estadual', 'deputado-federal', 'senador'].includes(office) && (
             <Mini label="Relação com o partido" value={`${Math.round(career.partyLoyalty)}/100`} term="fidelidade" />
@@ -275,14 +275,20 @@ export function GameScreen() {
             <div className="tnum flex flex-wrap items-baseline gap-x-4 gap-y-0.5">
               <span className="text-xl font-bold text-ink">{r.year}</span>
               <span className="text-xs text-ink-2">
-                <Term id="aprovacao">{office && ROLES[office].power === 'Executivo' ? 'Aprovação' : 'Popularidade'}</Term>{' '}
+                <Term id="aprovacao">{office === 'ministro-stf' ? 'Legitimidade' : office && ROLES[office].power === 'Executivo' ? 'Aprovação' : 'Popularidade'}</Term>{' '}
                 <strong className="text-ink">{Math.round(career.approval)}%</strong>
               </span>
               <span className="text-xs text-ink-2">
                 <Term id="capital-politico">Capital</Term> <strong className="text-ink">🪙 {career.capital}</strong>
               </span>
               <span className="text-xs text-ink-2">
-                Eleição <strong className="text-ink">{career.nextElection !== null ? 2023 + career.nextElection : '—'}</strong>
+                {office === 'ministro-stf' ? (
+                  <strong className="text-ink">Cargo vitalício</strong>
+                ) : (
+                  <>
+                    Eleição <strong className="text-ink">{career.nextElection !== null ? 2023 + career.nextElection : '—'}</strong>
+                  </>
+                )}
               </span>
             </div>
           </div>

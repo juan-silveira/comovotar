@@ -112,7 +112,13 @@ export const OBJECTIVES_BY_OFFICE: Record<Office, CareerObjective[]> = {
       id: 'plenario',
       kind: 'secundario',
       label: 'Levar 3 casos ao plenário em vez de decidir sozinho(a)',
-      check: ({ career, final }) => atLeast(3, career.decisions.filter((d) => d.cardId.startsWith('stf:') && d.optionId === 'plenario').length, final),
+      check: ({ career, final }) =>
+        atLeast(
+          3,
+          career.decisions.filter((d) => d.cardId.startsWith('stf:') && d.optionId === 'plenario').length +
+            career.history.filter((h) => h.kind === 'pressao' && /:plenario/.test(h.id)).length,
+          final,
+        ),
     },
     { id: 'limpo', kind: 'secundario', label: 'Não aceitar convites de partes com processos no tribunal', check: clean },
     {
@@ -120,7 +126,12 @@ export const OBJECTIVES_BY_OFFICE: Record<Office, CareerObjective[]> = {
       kind: 'oculto',
       label: 'Nunca dar uma liminar monocrática',
       check: ({ career, final }) =>
-        career.decisions.some((d) => d.cardId.startsWith('stf:') && d.optionId === 'liminar') ? 'falhou' : final ? 'ok' : 'pendente',
+        career.decisions.some((d) => d.cardId.startsWith('stf:') && d.optionId === 'liminar') ||
+        career.history.some((h) => h.kind === 'pressao' && h.id.startsWith('stf-') && h.id.endsWith(':liminar'))
+          ? 'falhou'
+          : final
+            ? 'ok'
+            : 'pendente',
     },
   ],
 }

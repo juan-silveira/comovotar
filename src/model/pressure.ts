@@ -3,6 +3,7 @@
 // simples; magnitudes são hipóteses didáticas.
 
 import type { Office } from './bills'
+import { LEGISLATIVE_EVENTS, LOCAL_EVENTS, STF_EVENTS } from './localEvents'
 
 export interface PressureOption {
   id: string
@@ -788,7 +789,13 @@ export const FOREIGN_EVENTS: PressureEvent[] = [
 ]
 
 export function findPressure(id: string): PressureEvent | undefined {
-  return PRESSURE_EVENTS.find((e) => e.id === id) ?? FOREIGN_EVENTS.find((e) => e.id === id)
+  return (
+    PRESSURE_EVENTS.find((e) => e.id === id) ??
+    FOREIGN_EVENTS.find((e) => e.id === id) ??
+    STF_EVENTS.find((e) => e.id === id) ??
+    LOCAL_EVENTS.find((e) => e.id === id) ??
+    LEGISLATIVE_EVENTS.find((e) => e.id === id)
+  )
 }
 
 /** Sorteia uma decisão de política externa (25% de chance ao ano). */
