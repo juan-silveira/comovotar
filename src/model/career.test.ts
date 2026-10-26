@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
 import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
 import { removalChance } from './governance'
+import { SOCIAL_BASE, socialSeries } from './social'
 import { drawGlobal, GLOBAL_PROBABILITY } from './geopolitics'
 import { ACHIEVEMENTS, officesHeld, unlockedAchievements } from './achievements'
 import { legacyHeadlines } from './legacy'
@@ -279,6 +280,31 @@ describe('crises globais', () => {
     const out = resolveItem(pres, { kind: 'crise-global', eventId: 'pandemia', title: 'Pandemia global', text: '' }, 'auxilio', input, results)
     expect(out.lawEffects.at(-1)).toMatchObject({ fromYear: 4, years: 1, effect: { growthA: 1.2, fiscalA: -3 } })
     expect(out.approval).toBe(pres.approval + 6)
+  })
+})
+
+describe('indicadores sociais', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+  it('partem dos valores de 2023; política social sustentada reduz pobreza sem efeito acumulado infinito', () => {
+    const c = newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' })
+    const neutral = socialSeries(c, results, 30)
+    expect(neutral[0].poverty).toBe(SOCIAL_BASE.poverty)
+    const social = { ...c, history: Array.from({ length: 30 }, (_, i) => ({ year: i + 1, kind: 'orcamento' as const, id: 'social' })) }
+    const s = socialSeries(social, results, 30)
+    const gap = neutral[30].poverty - s[30].poverty
+    expect(gap).toBeGreaterThan(2)
+    expect(gap).toBeLessThan(4)
+    expect(s[30].gini).toBeLessThan(neutral[30].gini)
+  })
+})
+
+describe('dificuldade', () => {
+  it('altera capital inicial e bônus eleitoral', () => {
+    const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })
+    const hard = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'raiz' })
+    expect(easy.capital - hard.capital).toBe(7)
+    expect(campaignBonus(easy, 5) - campaignBonus(hard, 5)).toBe(9)
   })
 })
 

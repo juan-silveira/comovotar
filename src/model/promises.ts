@@ -12,8 +12,8 @@ export type Feasibility = 'viavel' | 'dificil' | 'impossivel'
 /** Escolhas anuais registradas para avaliar promessas. */
 export interface ChoiceRecord {
   year: number
-  /** voto: votos contra a orientação do partido; oferta: resposta a propostas ilícitas */
-  kind: 'orcamento' | 'emendas' | 'voto' | 'oferta'
+  /** voto: votos contra a orientação do partido; oferta: resposta a propostas ilícitas; crise: resposta a crises globais */
+  kind: 'orcamento' | 'emendas' | 'voto' | 'oferta' | 'crise'
   id: string
 }
 

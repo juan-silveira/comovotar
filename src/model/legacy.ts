@@ -4,6 +4,7 @@ import { fmtBRLShort, fmtNum, lowerFirst } from '../lib/format'
 import { officesHeld } from './achievements'
 import { territoryStats, type CareerState } from './career'
 import { ROLES } from './roles'
+import { socialSeries } from './social'
 import type { SimInput, YearResult } from './simulation'
 
 export interface Headline {
@@ -32,6 +33,14 @@ export function legacyHeadlines(career: CareerState, input: SimInput, results: Y
   out.push({
     text: `${terr.name} termina ${terr.vs >= 0 ? 'acima' : 'abaixo'} da trajetória esperada: ${terr.vs >= 0 ? '+' : '−'}${fmtNum(Math.abs(terr.vs), 1)}%`,
     good: terr.vs >= 0,
+  })
+  const soc = socialSeries(career, results, Math.min(career.t, results.length - 1))
+  const first = soc[0]
+  const lastSoc = soc[soc.length - 1]
+  const dp = lastSoc.poverty - first.poverty
+  out.push({
+    text: `Pobreza no Brasil: de ${fmtNum(first.poverty, 1)}% para ${fmtNum(lastSoc.poverty, 1)}%; desemprego em ${fmtNum(lastSoc.unemployment, 1)}%`,
+    good: dp < 0,
   })
   const kept = career.promises.filter((p) => p.status === 'cumprida').length
   const broken = career.promises.filter((p) => p.status === 'quebrada').length

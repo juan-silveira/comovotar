@@ -1,3 +1,4 @@
+import { difficultyOf } from '../model/difficulty'
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import type { Office } from '../model/bills'
 import {
@@ -50,7 +51,9 @@ export function gameInput(mission: Mission, career: CareerState): SimInput {
         separationYear: career.separation.year,
       }
     : base.params
-  return { ...base, params, lawEffects: career.lawEffects, ufEffects: career.ufEffects }
+  // Dificuldade: mais ou menos eventos e crises.
+  const events = difficultyOf(career.setup.difficulty).events
+  return { ...base, params: { ...params, eventProbability: params.eventProbability * events }, lawEffects: career.lawEffects, ufEffects: career.ufEffects }
 }
 
 function withResults(mission: Mission, career: CareerState) {

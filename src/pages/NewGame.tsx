@@ -6,6 +6,7 @@ import { loadMunicipios } from '../lib/ibgeData'
 import { fmtNum, fmtPop, lowerFirst } from '../lib/format'
 import { useThemeColors } from '../lib/theme'
 import type { Office } from '../model/bills'
+import { DIFFICULTIES, type Difficulty } from '../model/difficulty'
 import { allMissions } from '../model/game'
 import { CAPITALS, type Municipio } from '../model/ibge'
 import {
@@ -39,6 +40,7 @@ export function NewGame() {
   })
   const [uf, setUf] = useState<UF>('SP')
   const [system, setSystem] = useState<PartySystem>('ficticio')
+  const [difficulty, setDifficulty] = useState<Difficulty>('realista')
   const [party, setParty] = useState('UDC')
   const PARTIES = partiesOf(system).filter((p) => p.share > 0)
   const [municipios, setMunicipios] = useState<Municipio[] | null>(null)
@@ -352,6 +354,27 @@ export function NewGame() {
         </Card>
       </div>
 
+      <Card title="Dificuldade">
+        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Dificuldade">
+          {(Object.keys(DIFFICULTIES) as Difficulty[]).map((d) => (
+            <button
+              key={d}
+              type="button"
+              role="radio"
+              aria-checked={difficulty === d}
+              onClick={() => setDifficulty(d)}
+              className={`rounded-lg border p-3 text-left ${difficulty === d ? 'border-accent bg-surface-2' : 'border-line hover:bg-surface-2'}`}
+            >
+              <div className="text-sm font-semibold text-ink">
+                {d === 'facil' ? '🌱 ' : d === 'realista' ? '⚖️ ' : '🔥 '}
+                {DIFFICULTIES[d].label}
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">{DIFFICULTIES[d].description}</p>
+            </button>
+          ))}
+        </div>
+      </Card>
+
       <Disclaimer compact />
       <div className="flex justify-end">
         <Button
@@ -367,6 +390,7 @@ export function NewGame() {
                 municipio: municipal ? municipio : null,
                 party: office === 'ministro-stf' ? '' : party,
                 partySystem: system,
+                difficulty,
               },
             })
             navigate('/jogo')

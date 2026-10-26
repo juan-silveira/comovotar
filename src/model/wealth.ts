@@ -162,11 +162,11 @@ export const ILLICIT_OFFERS: IllicitOffer[] = [
   },
 ]
 
-export function offerFor(office: Office, seed: number, t: number): IllicitOffer | null {
+export function offerFor(office: Office, seed: number, t: number, frequency = 1): IllicitOffer | null {
   const pool = ILLICIT_OFFERS.filter((o) => o.offices.includes(office))
   if (pool.length === 0) return null
   const rng = mulberry32((seed ^ hashString(`oferta:${t}:${office}`)) >>> 0)
-  if (rng() > 0.4) return null
+  if (rng() > 0.4 * frequency) return null
   return pool[Math.floor(rng() * pool.length)]
 }
 

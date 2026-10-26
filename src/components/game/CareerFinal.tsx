@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/auth'
 import { fmtNum, lowerFirst } from '../../lib/format'
 import { unlockedAchievements } from '../../model/achievements'
 import { legacyHeadlines } from '../../model/legacy'
+import { difficultyOf } from '../../model/difficulty'
 import { INITIALS_RE, normalizeInitials, rememberInitials, savedInitials, submitScore, type SubmitResult } from '../../lib/storage'
 import { careerScore } from '../../model/career'
 import { ROLES } from '../../model/roles'
@@ -101,7 +102,9 @@ export function CareerFinal() {
         <div>
           <div className="text-xs text-ink-2">Pontuação</div>
           <div className="tnum text-4xl font-bold text-ink">{fmtNum(s.total, 0)}</div>
-          <div className="text-xs text-muted">Ranking: {mission.title} · {ROLES[office].title}</div>
+          <div className="text-xs text-muted">
+            Ranking: {mission.title} · {ROLES[office].title} · dificuldade: {difficultyOf(career.setup.difficulty).label}
+          </div>
         </div>
         <table className="tnum text-sm">
           <tbody>

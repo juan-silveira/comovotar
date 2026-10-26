@@ -106,11 +106,11 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 - [ ] **Objetivos por cargo e cenário:** principal, secundários e ocultos. Exemplos: aprovar uma reforma, reduzir a pobreza, reeleger-se sem escândalos, sobreviver a uma crise externa.
 - [x] **Conquistas (medalhas):** 16 conquistas (algumas secretas), com aviso ao desbloquear e quadro na aba Você. Ideias originais: por exemplo, "Derrubou um veto", "Aprovou lei da oposição", "Governou 8 anos", "Votou pelo mérito contra o próprio partido", "Evitou uma CPI", "Atravessou uma guerra sem recessão", "Previdência sustentável".
-- [ ] **Indicadores sociais no placar:** pobreza, desigualdade (Gini), desemprego, educação, saúde, segurança e meio ambiente, além do PIB. "País melhor" não é só PIB.
+- [x] **Indicadores sociais (primeira versão):** desemprego (lei de Okun), pobreza, extrema pobreza e Gini, a partir dos dados do IBGE de 2023, reagindo ao crescimento e às escolhas sociais (orçamento, auxílio em crises); entram no painel, nas manchetes do legado e na conquista "País mais justo". Falta: educação, saúde, segurança e meio ambiente.
 - [ ] **Ranking ampliado:** por cargo, cenário, semana e temporada; ranking de "país mais justo" × "país mais rico" × "mais sustentável".
 - [ ] **Desafios diários e semanais** com a mesma semente para todos; modo "história" com eventos reais de 1988 a 2026.
 - [x] **Fim de partida:** manchetes do legado (cargos, leis, território, promessas, patrimônio, condenações), medalhas e botão de compartilhar.
-- [ ] **Dificuldade:** fácil (explicações e margem), realista e "Brasília raiz" (tudo contra).
+- [x] **Dificuldade:** fácil, realista e "Brasília raiz" (capital inicial, bônus eleitoral, frequência de crises e propostas ilícitas, apoio do Legislativo).
 
 ## Fase 5 — Celular e visual
 

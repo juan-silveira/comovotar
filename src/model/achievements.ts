@@ -7,6 +7,7 @@ import type { Office } from './bills'
 import { territoryStats, type CareerState } from './career'
 import { findPromise } from './promises'
 import { OFFICE_ORDER, ROLES } from './roles'
+import { socialSeries } from './social'
 import type { SimInput, YearResult } from './simulation'
 
 export interface AchievementContext {
@@ -147,6 +148,16 @@ export const ACHIEVEMENTS: Achievement[] = [
     title: 'Mais rico que a tendência',
     description: 'Terminar com o seu território acima da trajetória esperada.',
     check: ({ career, input, results }) => career.t >= 30 && territoryStats(career, input, results, career.t).vs > 0,
+  },
+  {
+    id: 'pais-justo',
+    icon: '🤲',
+    title: 'País mais justo',
+    description: 'Ver a pobreza no Brasil cair 8 pontos ou mais desde 2023.',
+    check: ({ career, results }) => {
+      const soc = socialSeries(career, results, Math.min(career.t, results.length - 1))
+      return soc[0].poverty - soc[soc.length - 1].poverty >= 8
+    },
   },
   {
     id: 'estadista',

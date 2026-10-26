@@ -30,6 +30,7 @@ import {
   type ImpeachmentChoice,
 } from './governance'
 import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
+import { difficultyOf, type Difficulty } from './difficulty'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -77,6 +78,7 @@ export interface PlayerSetup {
   party: string
   /** Partidos fictícios ou paródia do Congresso eleito em 2026 */
   partySystem?: PartySystem
+  difficulty?: Difficulty
 }
 
 export interface MuniEffect {
@@ -273,7 +275,7 @@ export function newCareer(setup: PlayerSetup): CareerState {
     candidacy: null,
     consecutiveTerms: 1,
     yearsInOffice: 0,
-    capital: START_CAPITAL,
+    capital: START_CAPITAL + difficultyOf(setup.difficulty).capital,
     approval: 50,
     decisions: [],
     quiz: {},
@@ -551,8 +553,8 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
     if (isExecutive(office)) {
       const support =
         office === 'presidente' && results[state.t]
-          ? results[state.t][separatedAt(input, state.t) ? side : 'A'].institutions.congressSupport
-          : Math.min(90, Math.max(15, 25 + state.approval * 0.6))
+          ? Math.min(95, Math.max(5, results[state.t][separatedAt(input, state.t) ? side : 'A'].institutions.congressSupport + difficultyOf(state.setup.difficulty).support))
+          : Math.min(90, Math.max(15, 25 + state.approval * 0.6 + difficultyOf(state.setup.difficulty).support))
       items.push({ kind: 'orcamento', support, lastGrowth })
       const rng = mulberry32((input.seed ^ hashString(`governo:${next}:${office}`)) >>> 0)
       // Impeachment: só com aprovação e apoio muito baixos.
@@ -619,7 +621,7 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
 
   // Propostas ilícitas e defesa em processo.
   if (office && !state.criminalCase) {
-    const offer = offerFor(office, input.seed, next)
+    const offer = offerFor(office, input.seed, next, difficultyOf(state.setup.difficulty).offers)
     if (offer) items.push({ kind: 'oferta', offerId: offer.id, amount: offer.amount(office, state.setup.municipio?.pop ?? 100_000) })
   }
   const cc = state.criminalCase
@@ -829,6 +831,7 @@ export function resolveItem(
         ...s.lawEffects,
         { fromYear: next, years: 1, effect: side === 'A' ? { growthA: r.growth, fiscalA: r.fiscal } : { growthB: r.growth, fiscalB: r.fiscal } },
       ]
+      s.history = [...s.history, { year: next, kind: 'crise', id: r.id }]
       s.approval = clamp(s.approval + r.approval)
       if (r.cost) s.capital = Math.max(0, s.capital - r.cost)
       s.log = [...s.log, { year: next, kind: 'crise', title: `Resposta à crise: ${lowerFirst(r.label)}`, text: item.title, good: r.approval >= 0 }]
@@ -1516,7 +1519,9 @@ export function campaignBonus(state: CareerState, t: number): number {
   const promises = state.promises
     .filter((p) => p.status === 'campanha' && p.year === t)
     .reduce((acc, p) => acc + (findPromise(p.id)?.voteBonus ?? 0), 0)
-  return promises + state.campaignSpend.filter((c) => c.year === t).reduce((acc, c) => acc + c.bonus, 0)
+  return (
+    promises + state.campaignSpend.filter((c) => c.year === t).reduce((acc, c) => acc + c.bonus, 0) + difficultyOf(state.setup.difficulty).electionBonus
+  )
 }
 
 function settleOffice(state: CareerState, input: SimInput, results: YearResult[]): CareerState {

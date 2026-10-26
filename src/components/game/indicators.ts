@@ -7,6 +7,7 @@ import { PREPAREDNESS_LABELS } from '../../model/climate'
 import { CABINET_LABELS } from '../../model/institutions'
 import { TRANSPARENCY_LABELS } from '../../model/politics'
 import type { SimInput, YearResult } from '../../model/simulation'
+import { socialSeries } from '../../model/social'
 
 export type Group = 'economia' | 'politica' | 'congresso' | 'justica' | 'clima' | 'sociedade'
 export type Status = 'bom' | 'atencao' | 'ruim' | 'neutro'
@@ -64,6 +65,7 @@ export function buildIndicators(career: CareerState, input: SimInput, results: Y
   const cabinet = side === 'A' ? p.cabinetA : p.cabinetB
   const prep = side === 'A' ? p.climatePrepA : p.climatePrepB
   const migration = separated ? b.netMigration : r.A.netMigration
+  const soc = socialSeries(career, results, t)
   const lawsPassed = career.bills.filter((x) => x.authorIsPlayer && x.state.status === 'lei').length
 
   const list: Indicator[] = [
@@ -247,6 +249,40 @@ export function buildIndicators(career: CareerState, input: SimInput, results: Y
       text: 'Investimento em alertas, drenagem, reservatórios, brigadas e redundância elétrica. Reduz os danos dos desastres.',
       affects: ['clima'],
       areas: ['Clima', 'Meio ambiente'],
+    },
+    {
+      id: 'desemprego',
+      group: 'sociedade',
+      label: 'Desemprego',
+      icon: '🧑‍🔧',
+      value: `${fmtNum(soc[t].unemployment, 1)}%`,
+      status: status(soc[t].unemployment, 6, 9, false),
+      text: 'Pessoas procurando trabalho sem encontrar, em % da força de trabalho (Brasil). Cai quando a economia cresce acima de cerca de 2% ao ano (lei de Okun) e sobe nas crises. Em 2026, o IBGE registrou 5,3%, o menor da série para o período.',
+      affects: ['pobreza', 'aprovacao'],
+      areas: ['Trabalho'],
+      series: soc.slice(Math.max(0, t - 9), t + 1).map((x) => x.unemployment),
+    },
+    {
+      id: 'pobreza',
+      group: 'sociedade',
+      label: 'Pobreza',
+      icon: '🏚️',
+      value: `${fmtNum(soc[t].poverty, 1)}%`,
+      status: status(soc[t].poverty, 18, 26, false),
+      text: `Pessoas com renda abaixo de R$ 694 por mês (US$ 6,85 por dia), Brasil. Extrema pobreza: ${fmtNum(soc[t].extremePoverty, 1)}%. Depende do emprego e das transferências como o Bolsa Família: sem os programas sociais, a extrema pobreza de 2024 teria sido de 10% em vez de 3,5% (IBGE).`,
+      affects: ['aprovacao'],
+      series: soc.slice(Math.max(0, t - 9), t + 1).map((x) => x.poverty),
+    },
+    {
+      id: 'desigualdade',
+      group: 'sociedade',
+      label: 'Desigualdade (Gini)',
+      icon: '⚖️',
+      value: fmtNum(soc[t].gini, 3),
+      status: status(soc[t].gini, 0.49, 0.53, false),
+      text: 'Índice de Gini da renda: 0 seria todos com a mesma renda; 1, um só com toda a renda. O Brasil está entre os países mais desiguais do mundo, perto de 0,51. Transferências de renda e emprego formal reduzem; crises aumentam.',
+      affects: ['aprovacao'],
+      series: soc.slice(Math.max(0, t - 9), t + 1).map((x) => x.gini),
     },
     {
       id: 'migracao',
