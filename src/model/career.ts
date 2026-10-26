@@ -31,6 +31,7 @@ import {
 } from './governance'
 import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
 import { difficultyOf, type Difficulty } from './difficulty'
+import { drawPressure, findPressure } from './pressure'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -136,6 +137,8 @@ export type TurnItem =
   | { kind: 'impeachment-voto'; govApproval: number; inGovernment: boolean }
   /** Resposta do presidente a uma crise global */
   | { kind: 'crise-global'; eventId: GlobalEventId; title: string; text: string }
+  /** Pressão de grupos de interesse, greves, notícias falsas e pautas-bomba */
+  | { kind: 'pressao'; eventId: string }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -493,6 +496,8 @@ export function itemKey(item: TurnItem, t: number): string {
       return `impeachment-voto:${t}`
     case 'crise-global':
       return `crise-global:${item.eventId}:${t}`
+    case 'pressao':
+      return `pressao:${t}`
   }
 }
 
@@ -610,6 +615,18 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
     for (const e of lastYear.newEvents)
       if (isGlobalEvent(e.id) && GLOBAL_RESPONSES[e.id].length > 0)
         items.push({ kind: 'crise-global', eventId: e.id, title: e.title, text: e.explanation })
+
+  // Grupos de interesse, greves, notícias falsas e pautas-bomba.
+  if (office && state.t >= 1) {
+    const rng = mulberry32((input.seed ^ hashString(`pressao:${next}:${office}`)) >>> 0)
+    const weak =
+      isExecutive(office) &&
+      (office === 'presidente' && lastYear
+        ? lastYear[separatedAt(input, state.t) ? side : 'A'].institutions.congressSupport + difficultyOf(state.setup.difficulty).support < 45
+        : state.approval < 40)
+    const ev = office === 'ministro-stf' ? (rng() < 0.15 ? findPressure('fake-news') ?? null : null) : drawPressure(office, rng, weak, difficultyOf(state.setup.difficulty).events)
+    if (ev) items.push({ kind: 'pressao', eventId: ev.id })
+  }
 
   // Financiamento da campanha (anos de eleição).
   if (campaign && !(state.t === 0 && state.office === campaign && state.nextElection !== next) && campaign !== 'ministro-stf')
@@ -837,6 +854,8 @@ export function resolveItem(
       s.log = [...s.log, { year: next, kind: 'crise', title: `Resposta à crise: ${lowerFirst(r.label)}`, text: item.title, good: r.approval >= 0 }]
       return s
     }
+    case 'pressao':
+      return resolvePressure(s, item, optionId, input)
     case 'cpi':
       return resolveCpi(s, item, optionId, input)
     case 'cpi-governo':
@@ -871,6 +890,29 @@ export function resolveItem(
       return s
     }
   }
+}
+
+function resolvePressure(s: CareerState, item: Extract<TurnItem, { kind: 'pressao' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const ev = findPressure(item.eventId)
+  const opt = ev?.options.find((o) => o.id === optionId)
+  if (!ev || !opt) return s
+  const ok = opt.success === undefined || mulberry32((input.seed ^ hashString(`pressao-resultado:${next}`)) >>> 0)() < opt.success
+  const fiscal = ok ? (opt.fiscal ?? 0) : (opt.failFiscal ?? opt.fiscal ?? 0)
+  s.approval = clamp(s.approval + (ok ? (opt.approval ?? 0) : (opt.failApproval ?? 0)))
+  if (opt.capital) s.capital = Math.max(0, s.capital + opt.capital)
+  const growth = opt.growth ?? 0
+  if (s.office === 'presidente' && (fiscal || growth)) {
+    const side = nationalSide(input, s.setup.uf, next)
+    s.lawEffects = [...s.lawEffects, { fromYear: next, years: 1, effect: side === 'A' ? { growthA: growth, fiscalA: fiscal } : { growthB: growth, fiscalB: fiscal } }]
+  } else if (growth) {
+    // Fora da Presidência, o efeito é local e menor.
+    if (s.office === 'prefeito' || s.office === 'vereador') s.muniEffects = [...s.muniEffects, { fromYear: next, years: 1, growth: growth * 0.5 }]
+    else s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: 1, growth: growth * (s.office === 'governador' ? 0.6 : 0.3) }]
+  }
+  const outcome = opt.success === undefined ? '' : ok ? opt.okText : opt.failText
+  s.log = [...s.log, { year: next, kind: 'info', title: `${ev.group}: ${lowerFirst(opt.label)}`, text: [ev.title, outcome].filter(Boolean).join('. '), good: ok && (opt.approval ?? 0) >= 0 }]
+  return s
 }
 
 function resolveCpi(s: CareerState, item: Extract<TurnItem, { kind: 'cpi' }>, optionId: string, input: SimInput): CareerState {

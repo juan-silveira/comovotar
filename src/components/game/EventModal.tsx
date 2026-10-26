@@ -24,6 +24,7 @@ const HEADER: Record<TurnItem['kind'], { label: string; icon: string }> = {
   impeachment: { label: 'Pedido de impeachment', icon: '⚠️' },
   'impeachment-voto': { label: 'Impeachment', icon: '🗳' },
   'crise-global': { label: 'O mundo lá fora', icon: '🌍' },
+  pressao: { label: 'Pressão', icon: '📣' },
 }
 
 /** Carta de evento em pop-up, uma decisão por vez. */

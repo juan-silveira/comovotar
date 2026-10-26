@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { fmtBRL, fmtBRLShort, fmtNum, lowerFirst } from '../../lib/format'
 import { FEASIBILITY_LABELS, promisesFor } from '../../model/promises'
 import { GLOBAL_RESPONSES } from '../../model/geopolitics'
+import { findPressure } from '../../model/pressure'
 import { CPI_DEFENSE_OPTIONS, CPI_SIGN_OPTIONS, IMPEACHMENT_OPTIONS, impeachmentRules } from '../../model/governance'
 import { CAMPAIGN_SPEND, convictionChance, ILLICIT_OFFERS, type CampaignSpend } from '../../model/wealth'
 import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
@@ -346,6 +347,35 @@ export function AgendaItem({
           />
         </div>
       )
+    case 'pressao': {
+      const ev = findPressure(item.eventId)
+      if (!ev) return null
+      return (
+        <div>
+          <Tag>
+            {ev.icon} {ev.group}
+          </Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">{ev.title}</h3>
+          <p className="mt-1 text-sm text-ink-2">{ev.text}</p>
+          {ev.ref && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              <LegalRefChip id={ev.ref} />
+            </div>
+          )}
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={ev.options.map((o) => ({
+              id: o.id,
+              label: o.label,
+              pros: o.pros,
+              cons: o.cons,
+              note: o.success !== undefined ? `Resultado incerto: cerca de ${Math.round(o.success * 100)}% de chance de dar certo.` : undefined,
+            }))}
+          />
+        </div>
+      )
+    }
     case 'crise-global':
       return (
         <div>

@@ -299,6 +299,18 @@ describe('indicadores sociais', () => {
   })
 })
 
+describe('pressões de grupos e redes', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+  it('greve: reajuste custa ao Tesouro federal; ignorar notícia falsa derruba a aprovação', () => {
+    const pres = { ...newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' }), t: 2 }
+    const out = resolveItem(pres, { kind: 'pressao', eventId: 'greve' }, 'reajuste', input, results)
+    expect(out.lawEffects.at(-1)!.effect.fiscalA).toBeCloseTo(-0.15)
+    const dep = { ...newCareer({ office: 'deputado-federal', uf: 'SP', municipio: null, party: 'UDC' }), t: 2 }
+    expect(resolveItem(dep, { kind: 'pressao', eventId: 'fake-news' }, 'ignorar', input, results).approval).toBe(dep.approval - 3)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })
