@@ -32,4 +32,4 @@ jobs:
       - name: Publicar no Firebase Hosting
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
-        run: npx firebase deploy --only hosting --project comovotar --non-interactive
+        run: npx --yes firebase-tools@latest deploy --only hosting --project comovotar --non-interactive
