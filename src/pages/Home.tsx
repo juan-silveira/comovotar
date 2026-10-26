@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { BookOpen, Coins, FlaskConical, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
+import { BookOpen, Coins, FlaskConical, Settings, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BrazilMap } from '../components/BrazilMap'
@@ -65,6 +65,7 @@ export function Home() {
     { icon: Coins, title: 'Dinheiro público', text: 'Orçamento, dívida, previdência e inflação', to: '/economia' },
     { icon: Sparkles, title: 'Assistente de IA', text: 'Crie leis próprias com a sua chave', to: '/assistente' },
     { icon: FlaskConical, title: 'Laboratório', text: 'Teste hipóteses mexendo nos parâmetros', to: '/laboratorio' },
+    { icon: Settings, title: 'Configurações', text: 'Texto, contraste, leitura fácil, sons e vibração', to: '/configuracoes' },
   ]
 
   const cycleTheme = () => {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { playCue } from '../../lib/settings'
 import { ACHIEVEMENTS, unlockedAchievements, type Achievement, type AchievementContext } from '../../model/achievements'
 
 /** Quadro de medalhas: conquistadas em cor, as demais apagadas (secretas aparecem como “???”). */
@@ -55,6 +56,7 @@ export function AchievementToasts({ ctx }: { ctx: AchievementContext }) {
     const fresh = ACHIEVEMENTS.filter((a) => ids.includes(a.id) && !seen.current!.has(a.id))
     if (fresh.length === 0) return
     for (const a of fresh) seen.current.add(a.id)
+    playCue('achievement')
     setQueue((q) => [...q, ...fresh])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])

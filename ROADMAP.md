@@ -121,11 +121,11 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - decisões em cartas de deslizar (no estilo Reigns) com confirmação;
   - indicadores em carrossel;
   - [x] mapa com zoom por pinça, roda do mouse e botões, e arraste quando ampliado.
-- [ ] **Identidade visual própria:** ilustrações de cargos e eventos, ícones, animações curtas (votações, sanção, veto), sons opcionais e vibração no celular.
+- [x] **Identidade visual própria:** tela de título verde e amarela, ícones por cargo e evento, plenário animado, carimbos de sanção e veto, sons sintetizados opcionais e vibração no celular.
 - [x] **Votação visual:** semicírculo animado com cada cadeira acendendo com o voto, partidos da esquerda para a direita.
 - [x] **Tutorial jogável:** dica curta na primeira vez que cada tipo de decisão aparece (guardada no navegador), além do guia "Como jogar".
 - [x] **PWA:** instalável (ícone próprio) e jogável sem internet (service worker com cache por versão; Firebase, IBGE e IA nunca passam pelo cache). Falta: notificações opcionais do desafio da semana.
-- [ ] **Acessibilidade:** leitor de tela, contraste, texto ampliado e modo "leitura fácil".
+- [x] **Acessibilidade:** página de Configurações com texto ampliado, alto contraste, leitura fácil (Atkinson Hyperlegible e mais espaçamento) e menos animações; rótulos para leitor de tela nos mapas, gráficos e votações.
 
 ## Fase 6 — Dados vivos e realismo
 

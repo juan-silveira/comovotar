@@ -104,7 +104,19 @@ export function BillView({ bill, compact = false }: { bill: BillState; compact?:
               {OUTCOME_ICON[l.outcome]}
             </span>
             <div className="text-[11px] font-semibold tracking-wide text-muted uppercase">{STAGE_LABELS[l.stage]}</div>
-            <div className="text-sm font-semibold text-ink">{l.title}</div>
+            <div className="text-sm font-semibold text-ink">
+              {l.title}
+              {(l.stage === 'sancao' || l.stage === 'veto' || l.stage === 'promulgacao') && l.outcome !== 'info' && (
+                <span
+                  className={`stamp ml-2 rounded border-2 px-1.5 py-0.5 align-middle text-[10px] font-black tracking-widest uppercase ${
+                    l.outcome === 'ok' ? 'border-good text-good' : l.outcome === 'fail' ? 'border-bad text-bad' : 'border-warn-ink text-warn-ink'
+                  }`}
+                  aria-hidden
+                >
+                  {l.outcome === 'ok' ? (l.stage === 'promulgacao' ? 'Promulgada' : 'Sancionada') : l.outcome === 'fail' ? 'Vetada' : 'Veto parcial'}
+                </span>
+              )}
+            </div>
             <p className="text-xs leading-relaxed text-ink-2">{l.text}</p>
             {l.refs && l.refs.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">

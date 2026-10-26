@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { markTipSeen, seenTips, TIPS } from './tips'
+import { playCue } from '../../lib/settings'
 import type { CareerState, TurnItem } from '../../model/career'
 import type { OFFICE_ORDER } from '../../model/roles'
 import { AgendaItem } from './AgendaPanel'
@@ -100,6 +101,7 @@ export function EventModal({
               career={career}
               onResolve={(id) => {
                 if (tip) dismissTip()
+                playCue('decision')
                 onResolve(item, id)
               }}
               onCareer={onCareer}

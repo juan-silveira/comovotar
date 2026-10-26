@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ComponentsChart, TimeSeriesChart } from '../components/charts'
 import { BillComposer } from '../components/game/BillComposer'
 import { votePrice } from '../model/lawmaking'
+import { playCue } from '../lib/settings'
 import { BillView } from '../components/game/BillView'
 import { BlockPanel } from '../components/game/BlockPanel'
 import { CareerFinal } from '../components/game/CareerFinal'
@@ -53,6 +54,13 @@ export function GameScreen() {
 
   // Reabre as cartas a cada novo ano.
   useEffect(() => setModal(true), [t])
+
+  // Som e vibração no resultado de eleições do ano que acabou de passar.
+  const lastElection = career?.log.filter((l) => l.kind === 'eleicao' && l.year === t - 0).at(-1)
+  useEffect(() => {
+    if (lastElection && lastElection.good !== undefined) playCue(lastElection.good ? 'success' : 'fail')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t])
 
   const nodes = useMemo(() => (career && input ? buildIndicators(career, input, results) : []), [career, input, results])
 

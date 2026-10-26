@@ -31,6 +31,7 @@ const Institutions = lazy(page(() => import('./pages/Institutions').then((m) => 
 const NewGame = lazy(page(() => import('./pages/NewGame').then((m) => ({ default: m.NewGame }))))
 const Ranking = lazy(page(() => import('./pages/Ranking').then((m) => ({ default: m.Ranking }))))
 const Report = lazy(page(() => import('./pages/Report').then((m) => ({ default: m.Report }))))
+const Settings = lazy(page(() => import('./pages/Settings').then((m) => ({ default: m.Settings }))))
 const Simulation = lazy(page(() => import('./pages/Simulation').then((m) => ({ default: m.Simulation }))))
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
                 <Route path="economia" element={<Economy />} />
                 <Route path="dados" element={<Data />} />
                 <Route path="assistente" element={<Assistant />} />
+                <Route path="configuracoes" element={<Settings />} />
                 <Route path="configuracao" element={<Navigate to="/laboratorio" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
