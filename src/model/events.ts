@@ -4,7 +4,9 @@
 
 import type { SeparationType } from './params'
 
-export type EventId = 'boom-commodities' | 'crise-cambial' | 'acordo-terceiros' | 'fuga-capitais'
+import type { GlobalEventId } from './geopolitics'
+
+export type EventId = 'boom-commodities' | 'crise-cambial' | 'acordo-terceiros' | 'fuga-capitais' | GlobalEventId
 
 export interface EventOccurrence {
   id: EventId
@@ -47,7 +49,7 @@ export function yearRng(seed: number, t: number): () => number {
 
 type Builder = (ctx: EventContext, rng: () => number) => EventOccurrence
 
-const BUILDERS: Record<Exclude<EventId, 'fuga-capitais'>, Builder> = {
+const BUILDERS: Record<Exclude<EventId, 'fuga-capitais' | GlobalEventId>, Builder> = {
   'boom-commodities': (ctx) => ({
     id: 'boom-commodities',
     year: ctx.t,
@@ -93,7 +95,7 @@ const BUILDERS: Record<Exclude<EventId, 'fuga-capitais'>, Builder> = {
   },
 }
 
-const WEIGHTS: Record<Exclude<EventId, 'fuga-capitais'>, number> = {
+const WEIGHTS: Record<Exclude<EventId, 'fuga-capitais' | GlobalEventId>, number> = {
   'boom-commodities': 3,
   'crise-cambial': 3,
   'acordo-terceiros': 2,

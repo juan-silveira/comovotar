@@ -24,6 +24,7 @@ import {
   type Side,
 } from './decisions'
 import { drawEvents, mulberry32, type EventOccurrence } from './events'
+import { drawGlobal } from './geopolitics'
 import {
   CABINET_EFFECTS,
   congressPassProbability,
@@ -701,7 +702,7 @@ export function computeYear(input: SimInput, s: SimSetup, prev: YearResult, t: n
         debtA: prev.A.debt,
         debtB: prev.B.debt,
         active: stillActive,
-      })
+      }).concat(drawGlobal(seed, t, prev.newEvents, stillActive))
     : []
   const activeEvents = [...stillActive, ...newEvents]
   const econEventsA = activeEvents.reduce((acc, e) => acc + e.effectA, 0)

@@ -87,7 +87,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 **Objetivo:** o governo também depende do que acontece fora do país.
 
-- [ ] **Sistema de crises globais**, cada uma com probabilidade, duração, canais de transmissão e cartas de resposta:
+- [x] **Sistema de crises globais** (primeira versão: guerra com alta do petróleo, pandemia seguida de retomada, crise financeira, tarifas sobre exportações, desaceleração da China e acordo Mercosul–UE; o presidente escolhe a resposta). Ideias para ampliar:
   - guerras (petróleo, fertilizantes, trigo; refugiados);
   - pandemias (saúde, auxílio emergencial, dívida);
   - crises financeiras (fuga de capitais, câmbio, juros);

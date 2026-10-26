@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { fmtBRL, fmtBRLShort, fmtNum, lowerFirst } from '../../lib/format'
 import { FEASIBILITY_LABELS, promisesFor } from '../../model/promises'
+import { GLOBAL_RESPONSES } from '../../model/geopolitics'
 import { CPI_DEFENSE_OPTIONS, CPI_SIGN_OPTIONS, IMPEACHMENT_OPTIONS, impeachmentRules } from '../../model/governance'
 import { CAMPAIGN_SPEND, convictionChance, ILLICIT_OFFERS, type CampaignSpend } from '../../model/wealth'
 import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
@@ -341,6 +342,30 @@ export function AgendaItem({
                   ? `Efeito na economia de ${item.territory}: praticamente nenhum, pelo tamanho da economia local.`
                   : `Efeito estimado na economia de ${item.territory}: +${fmtNum(g, 3)} p.p. por ano durante ${o.years} ${o.years === 1 ? 'ano' : 'anos'}.`
               })()}${o.capital ? ` +${o.capital} de capital político.` : ''}`,
+            }))}
+          />
+        </div>
+      )
+    case 'crise-global':
+      return (
+        <div>
+          <Tag>Crise internacional</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">{item.title}</h3>
+          <p className="mt-1 text-sm text-ink-2">{item.text}</p>
+          <p className="mt-2 text-xs text-ink-2">Como o governo responde? O efeito vale no próximo ano.</p>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={GLOBAL_RESPONSES[item.eventId].map((r) => ({
+              id: r.id,
+              label: r.label,
+              cost: r.cost,
+              pros: r.pros,
+              cons: r.cons,
+              note:
+                r.fiscal !== 0
+                  ? `Impacto no saldo das contas: ${r.fiscal > 0 ? '+' : '−'}${fmtNum(Math.abs(r.fiscal), 1)}% do PIB no ano.`
+                  : undefined,
             }))}
           />
         </div>

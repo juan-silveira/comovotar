@@ -29,6 +29,7 @@ import {
   removalChance,
   type ImpeachmentChoice,
 } from './governance'
+import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -131,6 +132,8 @@ export type TurnItem =
   | { kind: 'impeachment'; support: number }
   /** Votação do impeachment do presidente (deputados e senadores) */
   | { kind: 'impeachment-voto'; govApproval: number; inGovernment: boolean }
+  /** Resposta do presidente a uma crise global */
+  | { kind: 'crise-global'; eventId: GlobalEventId; title: string; text: string }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -486,6 +489,8 @@ export function itemKey(item: TurnItem, t: number): string {
       return `impeachment:${t}`
     case 'impeachment-voto':
       return `impeachment-voto:${t}`
+    case 'crise-global':
+      return `crise-global:${item.eventId}:${t}`
   }
 }
 
@@ -596,6 +601,13 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
   // Campanha: promessa para a eleição deste ano (ou para o mandato que começa com o jogo).
   const campaign = campaignOffice(state, next)
   if (campaign) items.push({ kind: 'promessa', office: campaign, initial: state.t === 0 && state.office === campaign && state.nextElection !== next })
+
+  // Crises globais do ano que passou: o presidente decide a resposta.
+  const lastYear = results[state.t]
+  if (office === 'presidente' && lastYear)
+    for (const e of lastYear.newEvents)
+      if (isGlobalEvent(e.id) && GLOBAL_RESPONSES[e.id].length > 0)
+        items.push({ kind: 'crise-global', eventId: e.id, title: e.title, text: e.explanation })
 
   // Financiamento da campanha (anos de eleição).
   if (campaign && !(state.t === 0 && state.office === campaign && state.nextElection !== next) && campaign !== 'ministro-stf')
@@ -809,6 +821,19 @@ export function resolveItem(
       return resolveEmendas(s, item, optionId, input)
     case 'oferta':
       return resolveOffer(s, item, optionId)
+    case 'crise-global': {
+      const r = GLOBAL_RESPONSES[item.eventId].find((x) => x.id === optionId)
+      if (!r) return s
+      const side = nationalSide(input, s.setup.uf, next)
+      s.lawEffects = [
+        ...s.lawEffects,
+        { fromYear: next, years: 1, effect: side === 'A' ? { growthA: r.growth, fiscalA: r.fiscal } : { growthB: r.growth, fiscalB: r.fiscal } },
+      ]
+      s.approval = clamp(s.approval + r.approval)
+      if (r.cost) s.capital = Math.max(0, s.capital - r.cost)
+      s.log = [...s.log, { year: next, kind: 'crise', title: `Resposta à crise: ${lowerFirst(r.label)}`, text: item.title, good: r.approval >= 0 }]
+      return s
+    }
     case 'cpi':
       return resolveCpi(s, item, optionId, input)
     case 'cpi-governo':

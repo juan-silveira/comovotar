@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
 import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
 import { removalChance } from './governance'
+import { drawGlobal, GLOBAL_PROBABILITY } from './geopolitics'
 import { ACHIEVEMENTS, officesHeld, unlockedAchievements } from './achievements'
 import { legacyHeadlines } from './legacy'
 import { campaignCeiling, initialWealth, statsFor } from './wealth'
@@ -257,6 +258,27 @@ describe('CPI, impeachment e controle', () => {
     expect(out.approval).toBe(dep.approval + 2)
     expect(out.partyLoyalty).toBe(dep.partyLoyalty - 10)
     expect(out.log.at(-1)!.title).toMatch(/CPI/)
+  })
+})
+
+describe('crises globais', () => {
+  it('pandemia é seguida de retomada; frequência perto da probabilidade definida', () => {
+    const pandemic = { id: 'pandemia' as const, year: 5, duration: 1, title: '', effectA: -3, effectB: -3, explanation: '' }
+    expect(drawGlobal(1, 6, [pandemic], [])[0].id).toBe('retomada')
+    let n = 0
+    for (let seed = 1; seed <= 200; seed++) for (let t = 2; t <= 30; t++) n += drawGlobal(seed, t, [], []).length
+    const rate = (n / (200 * 29)) * 100
+    expect(rate).toBeGreaterThan(GLOBAL_PROBABILITY - 3)
+    expect(rate).toBeLessThan(GLOBAL_PROBABILITY + 3)
+  })
+
+  it('o presidente responde à crise com efeito de um ano', () => {
+    const input = missionInput(mission, 30, [])
+    const results = simulate(input)
+    const pres = { ...newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' }), t: 3 }
+    const out = resolveItem(pres, { kind: 'crise-global', eventId: 'pandemia', title: 'Pandemia global', text: '' }, 'auxilio', input, results)
+    expect(out.lawEffects.at(-1)).toMatchObject({ fromYear: 4, years: 1, effect: { growthA: 1.2, fiscalA: -3 } })
+    expect(out.approval).toBe(pres.approval + 6)
   })
 })
 

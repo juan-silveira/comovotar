@@ -143,7 +143,7 @@ export const MISSIONS: Mission[] = [
     separationYear: 1,
     seed: 3003,
     eventProbability: 20,
-    objectives: [recoveryBy(7), perCapitaFloor('ambos', 35), debtCap(220)],
+    objectives: [recoveryBy(7), perCapitaFloor('ambos', 37), debtCap(225)],
   },
 ]
 
@@ -168,7 +168,7 @@ export function weeklyMission(date: Date = new Date()): Mission {
   const seed = hashString(week)
   const types: SeparationType[] = ['amigavel', 'intermediaria', 'conflituosa']
   const separation = types[seed % 3]
-  const caps: Record<SeparationType, number> = { amigavel: 95, intermediaria: 130, conflituosa: 220 }
+  const caps: Record<SeparationType, number> = { amigavel: 95, intermediaria: 130, conflituosa: 225 }
   const recovery: Record<SeparationType, number> = { amigavel: 2, intermediaria: 5, conflituosa: 7 }
   return {
     id: `semanal-${week}`,
