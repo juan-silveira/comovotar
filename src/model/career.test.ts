@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
 import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
+import { ACHIEVEMENTS, officesHeld, unlockedAchievements } from './achievements'
+import { legacyHeadlines } from './legacy'
 import { campaignCeiling, initialWealth, statsFor } from './wealth'
 import { budgetOutcome, emendaValue, findBudgetOption } from './budget'
 import { drawClimate } from './climate'
@@ -192,6 +194,33 @@ describe('patrimônio, propinas e investigação', () => {
     expect(c2.wealth).toBe(5_000_000 - Math.round(ceiling * 0.3))
     expect(c2.exposure).toBe(3)
     expect(campaignBonus(c2, 2)).toBe(5)
+  })
+})
+
+describe('conquistas e legado', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+
+  it('denunciar uma proposta libera a medalha; ids são únicos', () => {
+    expect(new Set(ACHIEVEMENTS.map((a) => a.id)).size).toBe(ACHIEVEMENTS.length)
+    const dep = { ...newCareer({ office: 'deputado-federal', uf: 'SP', municipio: null, party: 'UDC' }), t: 1 }
+    expect(unlockedAchievements({ career: dep, input, results })).toHaveLength(0)
+    const after = resolveItem(dep, { kind: 'oferta', offerId: 'voto', amount: 1e6 }, 'denunciar', input, results)
+    expect(unlockedAchievements({ career: after, input, results }).map((a) => a.id)).toContain('denuncia')
+  })
+
+  it('cargos ocupados incluem o inicial e os conquistados em eleições', () => {
+    const c = newCareer({ office: 'vereador', uf: 'CE', municipio: null, party: 'UDC' })
+    const later = { ...c, log: [...c.log, { year: 4, kind: 'eleicao' as const, title: 'Eleito(a) deputado(a) estadual', text: '' }] }
+    expect(officesHeld(later)).toEqual(['vereador', 'deputado-estadual'])
+  })
+
+  it('manchetes do legado citam mandato, território e patrimônio', () => {
+    const c = { ...newCareer({ office: 'governador', uf: 'MG', municipio: null, party: 'PMF' }), t: 30, yearsInOffice: 8 }
+    const h = legacyHeadlines(c, input, results).map((x) => x.text)
+    expect(h[0]).toContain('8 anos de mandato')
+    expect(h.some((t) => t.startsWith('MG termina'))).toBe(true)
+    expect(h.some((t) => t.startsWith('Patrimônio pessoal'))).toBe(true)
   })
 })
 

@@ -785,6 +785,7 @@ function resolveOffer(s: CareerState, item: Extract<TurnItem, { kind: 'oferta' }
   const next = s.t + 1
   const offer = ILLICIT_OFFERS.find((o) => o.id === item.offerId)
   if (!offer) return s
+  s.history = [...s.history, { year: next, kind: 'oferta', id: optionId }]
   if (optionId === 'aceitar') {
     s.wealth += item.amount
     s.illicitGains += item.amount
@@ -997,6 +998,8 @@ function applyLoyalty(s: CareerState, stance: PartyStance, vote: string, year: n
   }
   out.partyLoyalty = Math.max(0, s.partyLoyalty - 15)
   out.capital = Math.max(0, s.capital - 2)
+  // Votar a favor de uma boa proposta que o partido rejeita só por estratégia = voto pelo mérito.
+  out.history = [...s.history, { year, kind: 'voto', id: stance.reason === 'estrategia' && vote === 'favor' ? 'merito' : 'contra-partido' }]
   out.log.push({
     year,
     kind: 'info',

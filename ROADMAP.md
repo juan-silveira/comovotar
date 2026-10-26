@@ -105,11 +105,11 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 **Objetivo:** dar vontade de jogar de novo.
 
 - [ ] **Objetivos por cargo e cenário:** principal, secundários e ocultos. Exemplos: aprovar uma reforma, reduzir a pobreza, reeleger-se sem escândalos, sobreviver a uma crise externa.
-- [ ] **Conquistas (medalhas):** por exemplo, "Derrubou um veto", "Aprovou lei da oposição", "Governou 8 anos", "Votou pelo mérito contra o próprio partido", "Evitou uma CPI", "Atravessou uma guerra sem recessão", "Previdência sustentável".
+- [x] **Conquistas (medalhas):** 16 conquistas (algumas secretas), com aviso ao desbloquear e quadro na aba Você. Ideias originais: por exemplo, "Derrubou um veto", "Aprovou lei da oposição", "Governou 8 anos", "Votou pelo mérito contra o próprio partido", "Evitou uma CPI", "Atravessou uma guerra sem recessão", "Previdência sustentável".
 - [ ] **Indicadores sociais no placar:** pobreza, desigualdade (Gini), desemprego, educação, saúde, segurança e meio ambiente, além do PIB. "País melhor" não é só PIB.
 - [ ] **Ranking ampliado:** por cargo, cenário, semana e temporada; ranking de "país mais justo" × "país mais rico" × "mais sustentável".
 - [ ] **Desafios diários e semanais** com a mesma semente para todos; modo "história" com eventos reais de 1988 a 2026.
-- [ ] **Fim de partida:** retrato do país em 2053, com manchetes do seu legado e um card para compartilhar nas redes.
+- [x] **Fim de partida:** manchetes do legado (cargos, leis, território, promessas, patrimônio, condenações), medalhas e botão de compartilhar.
 - [ ] **Dificuldade:** fácil (explicações e margem), realista e "Brasília raiz" (tudo contra).
 
 ## Fase 5 — Celular e visual

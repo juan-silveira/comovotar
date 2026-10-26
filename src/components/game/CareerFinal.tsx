@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../lib/auth'
-import { fmtNum } from '../../lib/format'
+import { fmtNum, lowerFirst } from '../../lib/format'
+import { unlockedAchievements } from '../../model/achievements'
+import { legacyHeadlines } from '../../model/legacy'
 import { INITIALS_RE, normalizeInitials, rememberInitials, savedInitials, submitScore, type SubmitResult } from '../../lib/storage'
 import { careerScore } from '../../model/career'
 import { ROLES } from '../../model/roles'
@@ -14,6 +16,7 @@ export function CareerFinal() {
   const [initials, setInitials] = useState(savedInitials)
   const [status, setStatus] = useState<'idle' | 'sending' | SubmitResult | 'erro'>('idle')
   const [error, setError] = useState('')
+  const [shared, setShared] = useState(false)
   if (!career || !mission || !input) return null
   const s = careerScore(career, input, results, mission)
   const office = career.setup.office
@@ -52,8 +55,48 @@ export function CareerFinal() {
     ['Perguntas certas', s.quiz, '20 pontos por resposta correta.'],
     ['Objetivos do cenário', s.objectives, '100 pontos por objetivo nacional cumprido.'],
   ]
+  const headlines = legacyHeadlines(career, input, results)
+  const medals = unlockedAchievements({ career, input, results })
+
+  async function share() {
+    if (!career || !mission) return
+    const text = `Joguei “Como votar?” como ${lowerFirst(ROLES[office].title)}: ${fmtNum(s.total, 0)} pontos e ${medals.length} conquistas. ${headlines[1]?.text ?? ''}.`
+    const url = 'https://comovotar.web.app'
+    try {
+      if (navigator.share) await navigator.share({ title: 'Como votar?', text, url })
+      else {
+        await navigator.clipboard.writeText(`${text} ${url}`)
+        setShared(true)
+      }
+    } catch {
+      // compartilhamento cancelado
+    }
+  }
+
   return (
-    <Card title="Fim da simulação: balanço da carreira">
+    <Card title="Fim da simulação: o seu legado">
+      <div className="mb-4 rounded-xl bg-surface-2 p-4">
+        <div className="text-[10px] font-bold tracking-widest text-muted uppercase">Retrato de {2023 + career.t}</div>
+        <ul className="mt-2 space-y-1.5">
+          {headlines.map((h) => (
+            <li key={h.text} className={`text-sm font-semibold ${h.good === false ? 'text-bad' : h.good ? 'text-good' : 'text-ink'}`}>
+              📰 {h.text}
+            </li>
+          ))}
+        </ul>
+        {medals.length > 0 && (
+          <p className="mt-3 text-xl" aria-label={`Conquistas: ${medals.map((m) => m.title).join(', ')}`}>
+            {medals.map((m) => (
+              <span key={m.id} title={m.title} className="mr-1">
+                {m.icon}
+              </span>
+            ))}
+          </p>
+        )}
+        <Button className="mt-3" onClick={share}>
+          {shared ? '✓ Texto copiado' : '↗ Compartilhar resultado'}
+        </Button>
+      </div>
       <div className="flex flex-wrap items-start gap-8">
         <div>
           <div className="text-xs text-ink-2">Pontuação</div>

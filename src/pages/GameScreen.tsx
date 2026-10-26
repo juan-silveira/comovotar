@@ -12,6 +12,7 @@ import { HowToPlay, howToSeen } from '../components/game/HowToPlay'
 import { IndicatorList } from '../components/game/IndicatorList'
 import { buildIndicators, type Indicator } from '../components/game/indicators'
 import { findPromise, type PromiseRecord } from '../model/promises'
+import { AchievementsPanel, AchievementToasts } from '../components/game/Achievements'
 import { WealthPanel } from '../components/game/WealthPanel'
 import { NewsFeed } from '../components/game/NewsFeed'
 import { ComponentsTable, WhyPanel } from '../components/panels'
@@ -172,6 +173,7 @@ export function GameScreen() {
           )}
           <Mini label="Leis aprovadas" value={String(career.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').length)} />
         </div>
+        <AchievementsPanel ctx={{ career, input, results }} />
         <WealthPanel career={career} mediaInfluence={input.params.mediaInfluence} />
         {career.promises.length > 0 && (
           <div className="rounded-xl border border-line bg-surface p-3">
@@ -250,6 +252,7 @@ export function GameScreen() {
 
   return (
     <div className="pb-28 lg:pb-24">
+      <AchievementToasts ctx={{ career, input, results }} />
       {/* Barra de status */}
       <div className="mb-3 rounded-2xl border border-line bg-surface px-3 py-2.5 shadow-sm sm:px-4">
         <div className="flex items-center gap-3">
