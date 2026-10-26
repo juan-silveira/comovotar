@@ -161,3 +161,25 @@ input[type='range'] {
     animation: none;
   }
 }
+
+/* Cadeiras do plenário acendem em sequência na votação. */
+@keyframes hemi-seat-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.hemi-seat {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hemi-seat-in 280ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hemi-seat {
+    animation: none;
+  }
+}

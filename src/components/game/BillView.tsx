@@ -2,6 +2,7 @@ import { lowerFirst } from '../../lib/format'
 import { NORM_LABELS } from '../../model/bills'
 import { getTemplate, STAGE_LABELS, type BillState, type LogEntry } from '../../model/lawmaking'
 import { SPECTRUM_LABELS, VOTE_REASON_LABELS, type VoteResult } from '../../model/legislature'
+import { Hemicycle } from './Hemicycle'
 import { LegalRefChip } from './LegalRef'
 
 const OUTCOME_STYLE: Record<LogEntry['outcome'], string> = {
@@ -15,6 +16,7 @@ const OUTCOME_ICON: Record<LogEntry['outcome'], string> = { ok: '✓', fail: '�
 export function VoteTable({ vote }: { vote: VoteResult }) {
   const max = Math.max(...vote.parties.map((p) => p.seats))
   return (
+    <>
     <div className="mt-2 overflow-x-auto">
       <table className="tnum w-full min-w-[420px] text-xs">
         <caption className="sr-only">Votação por partido na {vote.chamber}</caption>
@@ -64,6 +66,7 @@ export function VoteTable({ vote }: { vote: VoteResult }) {
         </tbody>
       </table>
     </div>
+    </>
   )
 }
 
@@ -110,6 +113,7 @@ export function BillView({ bill, compact = false }: { bill: BillState; compact?:
                 ))}
               </div>
             )}
+            {!compact && l.vote && <Hemicycle vote={l.vote} />}
             {!compact && l.vote && (
               <details className="mt-1">
                 <summary className="cursor-pointer text-xs text-ink-2">Ver votação por partido</summary>

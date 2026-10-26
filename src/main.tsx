@@ -11,3 +11,10 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// Instalável e jogável sem internet (só em produção, para não atrapalhar o desenvolvimento).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`/sw.js?v=${__BUILD_ID__}`).catch(() => {})
+  })
+}

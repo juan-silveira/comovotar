@@ -122,9 +122,9 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - indicadores em carrossel;
   - mapa com zoom por toque.
 - [ ] **Identidade visual própria:** ilustrações de cargos e eventos, ícones, animações curtas (votações, sanção, veto), sons opcionais e vibração no celular.
-- [ ] **Votação visual:** um semicírculo animado mostrando os votos.
+- [x] **Votação visual:** semicírculo animado com cada cadeira acendendo com o voto, partidos da esquerda para a direita.
 - [ ] **Tutorial jogável** nos 3 primeiros turnos, com dicas contextuais.
-- [ ] **PWA:** instalável, funciona offline, notificações opcionais do desafio da semana.
+- [x] **PWA:** instalável (ícone próprio) e jogável sem internet (service worker com cache por versão; Firebase, IBGE e IA nunca passam pelo cache). Falta: notificações opcionais do desafio da semana.
 - [ ] **Acessibilidade:** leitor de tela, contraste, texto ampliado e modo "leitura fácil".
 
 ## Fase 6 — Dados vivos e realismo
