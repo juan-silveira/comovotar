@@ -339,6 +339,21 @@ describe('câmbio, inflação e juros', () => {
   })
 })
 
+describe('objetivos por cargo', () => {
+  it('vereador: oculto falha ao aceitar propina; reeleição conta como secundário', async () => {
+    const { careerObjectives } = await import('./objectives')
+    const results = simulate(missionInput(mission, 30, []))
+    const input = missionInput(mission, 30, [])
+    const v = { ...newCareer({ office: 'vereador', uf: 'CE', municipio: null, party: 'UDC' }), t: 5 }
+    const ids = careerObjectives(v, input, results).map((o) => `${o.objective.id}:${o.status}`)
+    expect(ids).toEqual(['leis:pendente', 'reeleicao:pendente', 'merito:pendente', 'limpo:pendente'])
+    const corrupt = { ...v, history: [{ year: 2, kind: 'oferta' as const, id: 'aceitar' }], log: [...v.log, { year: 4, kind: 'eleicao' as const, title: 'Reeleito(a)!', text: '' }] }
+    const st = Object.fromEntries(careerObjectives(corrupt, input, results).map((o) => [o.objective.id, o.status]))
+    expect(st.limpo).toBe('falhou')
+    expect(st.reeleicao).toBe('ok')
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })

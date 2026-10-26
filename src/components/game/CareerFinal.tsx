@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/auth'
 import { fmtNum, lowerFirst } from '../../lib/format'
 import { unlockedAchievements } from '../../model/achievements'
 import { legacyHeadlines } from '../../model/legacy'
+import { ObjectivesPanel } from './ObjectivesPanel'
 import { difficultyOf } from '../../model/difficulty'
 import { INITIALS_RE, normalizeInitials, rememberInitials, savedInitials, submitScore, type SubmitResult } from '../../lib/storage'
 import { careerScore } from '../../model/career'
@@ -94,6 +95,9 @@ export function CareerFinal() {
             ))}
           </p>
         )}
+        <div className="mt-3">
+          <ObjectivesPanel ctx={{ career, input, results }} />
+        </div>
         <Button className="mt-3" onClick={share}>
           {shared ? '✓ Texto copiado' : '↗ Compartilhar resultado'}
         </Button>

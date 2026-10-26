@@ -14,6 +14,7 @@ import { IndicatorList } from '../components/game/IndicatorList'
 import { buildIndicators, type Indicator } from '../components/game/indicators'
 import { findPromise, type PromiseRecord } from '../model/promises'
 import { AchievementsPanel, AchievementToasts } from '../components/game/Achievements'
+import { ObjectivesPanel } from '../components/game/ObjectivesPanel'
 import { WealthPanel } from '../components/game/WealthPanel'
 import { NewsFeed } from '../components/game/NewsFeed'
 import { ComponentsTable, WhyPanel } from '../components/panels'
@@ -174,6 +175,7 @@ export function GameScreen() {
           )}
           <Mini label="Leis aprovadas" value={String(career.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').length)} />
         </div>
+        <ObjectivesPanel ctx={{ career, input, results }} />
         <AchievementsPanel ctx={{ career, input, results }} />
         <WealthPanel career={career} mediaInfluence={input.params.mediaInfluence} />
         {career.promises.length > 0 && (

@@ -104,7 +104,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 **Objetivo:** dar vontade de jogar de novo.
 
-- [ ] **Objetivos por cargo e cenário:** principal, secundários e ocultos. Exemplos: aprovar uma reforma, reduzir a pobreza, reeleger-se sem escândalos, sobreviver a uma crise externa.
+- [x] **Objetivos por cargo:** principal, dois secundários e um oculto para cada cargo (leis, território, pobreza, inflação, reeleição, voto pelo mérito, ficha limpa, impeachment, liminares), na aba Você e no fim da partida. Ideias originais: Exemplos: aprovar uma reforma, reduzir a pobreza, reeleger-se sem escândalos, sobreviver a uma crise externa.
 - [x] **Conquistas (medalhas):** 16 conquistas (algumas secretas), com aviso ao desbloquear e quadro na aba Você. Ideias originais: por exemplo, "Derrubou um veto", "Aprovou lei da oposição", "Governou 8 anos", "Votou pelo mérito contra o próprio partido", "Evitou uma CPI", "Atravessou uma guerra sem recessão", "Previdência sustentável".
 - [x] **Indicadores sociais (primeira versão):** desemprego (lei de Okun), pobreza, extrema pobreza e Gini, a partir dos dados do IBGE de 2023, reagindo ao crescimento e às escolhas sociais (orçamento, auxílio em crises); entram no painel, nas manchetes do legado e na conquista "País mais justo". Agora também mortalidade infantil (IBGE), Ideb do ensino médio (Inep), mortes violentas (Anuário de Segurança Pública) e desmatamento na Amazônia (Prodes/Inpe), ligados às escolhas de orçamento, emendas, crises, leis de segurança e pressões ambientais.
 - [ ] **Ranking ampliado:** por cargo, cenário, semana e temporada; ranking de "país mais justo" × "país mais rico" × "mais sustentável".
