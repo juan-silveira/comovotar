@@ -155,6 +155,14 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 ---
 
+## Pendências (próximos passos)
+
+- [ ] **Assistente de IA no servidor:** exige Cloud Functions, disponíveis só no plano pago do Firebase (Blaze). Hoje a IA usa a chave do próprio jogador, só no navegador.
+- [ ] **Multiplayer em tempo real:** jogadores em cargos diferentes no mesmo país (presidente, líderes, STF) negociando entre si. Exige reescrever o motor para turnos compartilhados. Hoje existe a versão assíncrona (mesmo cenário, placar e debate).
+- [ ] **Notificações do desafio do dia:** exigem um servidor de envio (Firebase Cloud Messaging com Functions). O jogo já é instalável e funciona sem internet.
+- [ ] **Revisão por especialistas:** economistas e cientistas políticos de diferentes linhas revisarem o modelo e os textos.
+- [ ] **Verificar os links do Planalto** a partir de uma rede com acesso ao site (não foi possível testar no desenvolvimento).
+
 ## Ordem sugerida
 
 1. Fase 1 (dinheiro público) e Fase 1.5 (leis criadas pelo jogador, com IA opcional).
