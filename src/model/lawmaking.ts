@@ -83,7 +83,21 @@ export interface LegislativeContext {
   electionPressure: number
 }
 
+/**
+ * Preço dos votos negociados: com o governo ou o autor impopular, partidos
+ * pragmáticos (o "Centrão") cobram mais por apoio.
+ */
+export function votePrice(approval: number): number {
+  return approval < 30 ? 2 : approval < 40 ? 1.5 : 1
+}
+
+export function bargainingCost(bargaining: number, urgency: boolean, price = 1): number {
+  return Math.round(bargaining * 4 * price) + (urgency ? 2 : 0)
+}
+
 export interface BillDraft {
+  /** Multiplicador do preço da negociação no momento da proposta */
+  price?: number
   templateId: string
   variantId?: string
   norm: NormType
@@ -237,7 +251,7 @@ export function startBill(ctx: LegislativeContext, draft: BillDraft): BillState 
     house: ctx.initiatingHouse,
     amendedByReviser: false,
     pending: null,
-    capitalSpent: Math.round(draft.bargaining * 4) + (draft.urgency ? 2 : 0),
+    capitalSpent: bargainingCost(draft.bargaining, draft.urgency, draft.price),
     mpInForce: draft.norm === 'medida-provisoria',
     counter: 0,
   }

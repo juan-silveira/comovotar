@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ComponentsChart, TimeSeriesChart } from '../components/charts'
 import { BillComposer } from '../components/game/BillComposer'
+import { votePrice } from '../model/lawmaking'
 import { BillView } from '../components/game/BillView'
 import { BlockPanel } from '../components/game/BlockPanel'
 import { CareerFinal } from '../components/game/CareerFinal'
@@ -376,6 +377,7 @@ export function GameScreen() {
           <BillComposer
             office={office}
             capital={career.capital}
+            price={votePrice(career.approval)}
             proposalCtx={proposalContext(career, input, results)}
             politicalContext={politicalSummary(career, input, results)}
             onCreateCustom={(c) => dispatch({ type: 'add-custom', bill: c })}

@@ -2,7 +2,7 @@ import { lowerFirst } from '../../lib/format'
 import { useState } from 'react'
 import { billsFor, NORM_LABELS, NORM_RANK, type BillTemplate, type NormType, type Office, type Vice } from '../../model/bills'
 import { legalRef } from '../../model/constitution'
-import { officeName, type BillDraft } from '../../model/lawmaking'
+import { officeName, type BillDraft, bargainingCost } from '../../model/lawmaking'
 import { ROLES } from '../../model/roles'
 import { Button, Segmented, Slider } from '../ui'
 import { ProposalCreator } from './ProposalCreator'
@@ -36,7 +36,10 @@ export function BillComposer({
   proposalCtx,
   politicalContext = '',
   onCreateCustom,
+  price = 1,
 }: {
+  /** Multiplicador do preço dos votos (sobe com a aprovação baixa) */
+  price?: number
   initialTemplateId?: string
   /** Contexto para criar propostas próprias (com IA ou formulário) */
   proposalCtx?: ProposalContext
@@ -67,7 +70,7 @@ export function BillComposer({
       : ['lei-ordinaria', 'lei-complementar', 'pec']
   const normLabel = (n: NormType) =>
     level === 'federal' || n !== 'pec' ? NORM_LABELS[n] : level === 'estadual' ? 'Emenda à Constituição Estadual' : 'Emenda à Lei Orgânica'
-  const cost = Math.round(bargaining * 4) + (urgency ? 2 : 0)
+  const cost = bargainingCost(bargaining, urgency, price)
 
   const modeToggle = proposalCtx && onCreateCustom && (
     <Segmented
@@ -203,6 +206,11 @@ export function BillComposer({
           tooltip="Cargos, emendas e apoio a pautas de outros partidos em troca de votos. Cada nível custa capital político."
           digits={2}
         />
+        {price > 1 && (
+          <p className="text-xs text-warn-ink">
+            Com a sua aprovação baixa, os partidos de centro cobram {price === 2 ? 'o dobro' : '50% a mais'} pelo apoio.
+          </p>
+        )}
       </div>
 
       <div className="rounded-lg bg-surface-2 p-3 text-sm">
@@ -244,7 +252,7 @@ export function BillComposer({
           <Button
             variant="primary"
             disabled={cost > capital}
-            onClick={() => onPropose({ templateId, variantId, norm, urgency, bargaining })}
+            onClick={() => onPropose({ templateId, variantId, norm, urgency, bargaining, price })}
           >
             Protocolar
           </Button>

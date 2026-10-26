@@ -171,3 +171,14 @@ describe('voto estratégico', () => {
     expect(voteReason(rivalElection)).toBe('estrategia')
   })
 })
+
+describe('preço dos votos', () => {
+  it('sobe com a aprovação baixa', async () => {
+    const { bargainingCost, votePrice } = await import('./lawmaking')
+    expect(votePrice(55)).toBe(1)
+    expect(votePrice(35)).toBe(1.5)
+    expect(votePrice(20)).toBe(2)
+    expect(bargainingCost(1, true, 2)).toBe(10)
+    expect(bargainingCost(0.5, false)).toBe(2)
+  })
+})
