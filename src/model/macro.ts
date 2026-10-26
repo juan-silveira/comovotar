@@ -12,6 +12,8 @@ export const MACRO_BASE = {
   inflation: 4.62,
   /** Selic no fim de 2023, % ao ano (Banco Central) */
   selic: 11.75,
+  /** Saldo comercial de 2023: US$ 98,8 bilhões, cerca de 4,5% do PIB (MDIC) */
+  tradeBalance: 4.5,
   /** Meta de inflação, % */
   target: 3,
 }
@@ -30,10 +32,23 @@ const SHOCKS: Record<string, { dollar: number; inflation: number }> = {
   'acordo-ue': { dollar: -2, inflation: -0.2 },
 }
 
+/** Efeito direto de eventos sobre o saldo comercial, p.p. do PIB. */
+const TRADE_SHOCKS: Record<string, number> = {
+  'boom-commodities': 0.8,
+  china: -0.5,
+  tarifas: -0.4,
+  'acordo-ue': 0.3,
+  guerra: -0.2,
+  pandemia: 0.3,
+  'acordo-terceiros': 0.2,
+}
+
 export interface MacroYear {
   dollar: number
   inflation: number
   selic: number
+  /** Saldo da balança comercial (exportações − importações), % do PIB */
+  tradeBalance: number
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
@@ -61,7 +76,15 @@ export function stepMacro(prev: MacroYear, d: MacroDrivers): MacroYear {
   const inflation = clamp(0.45 * prev.inflation + 0.55 * MACRO_BASE.target + 0.15 * dollarChange + 0.25 * (d.growth - 2) + shock.inflation, -1, 25)
   // Banco Central: juro real neutro de ~5% mais reação à inflação acima da meta.
   const selic = clamp(inflation + 5 + 0.8 * (inflation - MACRO_BASE.target), 2, 25)
-  return { dollar, inflation, selic }
+  // Balança comercial: dólar mais caro estimula exportações e freia importações;
+  // economia aquecida importa mais; volta aos poucos para cerca de 3% do PIB.
+  const tradeShock = d.newEvents.reduce((acc, e) => acc + (TRADE_SHOCKS[e.id] ?? 0), 0)
+  const tradeBalance = clamp(
+    (prev.tradeBalance ?? MACRO_BASE.tradeBalance) + 0.25 * (3 - (prev.tradeBalance ?? MACRO_BASE.tradeBalance)) + 0.05 * (dollarChange - inflation) - 0.3 * (d.growth - 2) + tradeShock,
+    -6,
+    10,
+  )
+  return { dollar, inflation, selic, tradeBalance }
 }
 
 /** Inflação de equilíbrio do modelo sem choques (o crescimento histórico usado como base já embute juros médios). */

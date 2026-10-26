@@ -143,6 +143,17 @@ export function buildIndicators(career: CareerState, input: SimInput, results: Y
       series: mac.slice(Math.max(0, t - 9), t + 1).map((x) => x.dollar),
     },
     {
+      id: 'balanca',
+      group: 'economia',
+      label: 'Balança comercial',
+      icon: '🚢',
+      value: `${mac[t].tradeBalance >= 0 ? '+' : '−'}${fmtNum(Math.abs(mac[t].tradeBalance), 1)}% do PIB`,
+      status: status(mac[t].tradeBalance, 2, 0),
+      text: 'Exportações menos importações. O Brasil tem saldo positivo graças a commodities como soja, minério e petróleo (US$ 98,8 bilhões em 2023). Dólar mais caro ajuda a exportar; China mais fraca e tarifas no exterior atrapalham.',
+      affects: ['dolar'],
+      series: mac.slice(Math.max(0, t - 9), t + 1).map((x) => x.tradeBalance),
+    },
+    {
       id: 'juros',
       group: 'economia',
       label: 'Juros (Selic)',

@@ -35,6 +35,8 @@ export interface PressureEvent {
   options: PressureOption[]
   /** Só quando o governo tem pouco apoio no Legislativo */
   weakGovernmentOnly?: boolean
+  /** Não é sorteado: só aparece quando uma condição do jogo o dispara */
+  triggeredOnly?: boolean
 }
 
 const EXEC: Office[] = ['presidente', 'governador', 'prefeito']
@@ -544,6 +546,43 @@ export const PRESSURE_EVENTS: PressureEvent[] = [
     ],
   },
   {
+    id: 'lrf-pessoal',
+    triggeredOnly: true,
+    offices: ['governador', 'prefeito'],
+    icon: '📑',
+    group: 'Tribunal de Contas',
+    title: 'Tribunal de Contas alerta: gasto com pessoal passou do limite prudencial',
+    text: 'Depois dos reajustes concedidos, a folha de pagamento encostou no teto da Lei de Responsabilidade Fiscal (60% da receita corrente líquida para estados e municípios, somados todos os Poderes). Acima do limite, ficam proibidos novos reajustes e contratações, e as contas podem ser rejeitadas.',
+    ref: 'lrf9',
+    options: [
+      {
+        id: 'cortar-comissionados',
+        label: 'Cortar cargos comissionados e horas extras',
+        pros: ['Volta ao limite sem demitir servidores concursados.'],
+        cons: ['Aliados que ocupavam cargos ficam insatisfeitos (−2 de capital).'],
+        capital: -2,
+      },
+      {
+        id: 'congelar',
+        label: 'Congelar contratações e reajustes por dois anos',
+        pros: ['Ajuste gradual e previsível.'],
+        cons: ['Servidores e serviços sentem (−2 de aprovação).'],
+        approval: -2,
+        growth: -0.02,
+      },
+      {
+        id: 'ignorar',
+        label: 'Ignorar o alerta e torcer pela arrecadação',
+        pros: ['Nenhum desgaste agora.'],
+        cons: ['Se a receita não reagir, as contas podem ser rejeitadas, o que pode levar à inelegibilidade pela Lei da Ficha Limpa.'],
+        success: 0.4,
+        failApproval: -4,
+        okText: 'A arrecadação cresceu e a folha voltou ao limite sozinha.',
+        failText: 'O Tribunal de Contas recomendou a rejeição das contas; o caso vai ao Legislativo e pode gerar inelegibilidade.',
+      },
+    ],
+  },
+  {
     id: 'pauta-bomba',
     offices: ['presidente', 'governador'],
     icon: '💣',
@@ -762,7 +801,7 @@ export function drawForeign(office: Office, rng: () => number): PressureEvent | 
 /** Sorteia uma pressão para o cargo no ano (35% de chance). */
 export function drawPressure(office: Office, rng: () => number, weakGovernment: boolean, frequency = 1): PressureEvent | null {
   if (rng() > 0.35 * frequency) return null
-  const pool = PRESSURE_EVENTS.filter((e) => e.offices.includes(office) && (!e.weakGovernmentOnly || weakGovernment))
+  const pool = PRESSURE_EVENTS.filter((e) => !e.triggeredOnly && e.offices.includes(office) && (!e.weakGovernmentOnly || weakGovernment))
   if (pool.length === 0) return null
   return pool[Math.floor(rng() * pool.length)]
 }

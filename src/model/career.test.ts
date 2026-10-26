@@ -345,6 +345,26 @@ describe('câmbio, inflação e juros', () => {
   })
 })
 
+describe('LRF e balança comercial', () => {
+  it('dois reajustes seguidos disparam o alerta de gasto com pessoal', () => {
+    const input = missionInput(mission, 30, [])
+    const results = simulate(input)
+    const gov = { ...newCareer({ office: 'governador', uf: 'BA', municipio: null, party: 'UDC' }), t: 4 }
+    const has = (c: typeof gov) => pendingItems(c, input, results).some((i) => i.kind === 'pressao' && i.eventId === 'lrf-pessoal')
+    expect(has(gov)).toBe(false)
+    const raised = { ...gov, history: [1, 3].map((year) => ({ year, kind: 'pressao' as const, id: 'greve:reajuste' })) }
+    expect(has(raised)).toBe(true)
+  })
+
+  it('boom de commodities melhora a balança comercial', async () => {
+    const { stepMacro, MACRO_BASE } = await import('./macro')
+    const base = { dollar: 5, inflation: 3, selic: 8, tradeBalance: MACRO_BASE.tradeBalance }
+    const calm = stepMacro(base, { growth: 2, premiumChange: 0, debtChange: 0, newEvents: [] })
+    const boom = stepMacro(base, { growth: 2, premiumChange: 0, debtChange: 0, newEvents: [{ id: 'boom-commodities' }] })
+    expect(boom.tradeBalance).toBeGreaterThan(calm.tradeBalance)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })

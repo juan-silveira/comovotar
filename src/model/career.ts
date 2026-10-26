@@ -627,6 +627,11 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
         : state.approval < 40)
     const ev = office === 'ministro-stf' ? (rng() < 0.15 ? findPressure('fake-news') ?? null : null) : drawPressure(office, rng, weak, difficultyOf(state.setup.difficulty).events)
     if (ev) items.push({ kind: 'pressao', eventId: ev.id })
+    // Lei de Responsabilidade Fiscal: reajustes seguidos estouram o limite de gasto com pessoal.
+    const raises = state.history.filter((h) => h.kind === 'pressao' && h.id === 'greve:reajuste').length
+    const alerted = state.history.some((h) => h.kind === 'pressao' && h.id.startsWith('lrf-pessoal:'))
+    if ((office === 'governador' || office === 'prefeito') && raises >= 2 && !alerted && ev?.id !== 'lrf-pessoal')
+      items.push({ kind: 'pressao', eventId: 'lrf-pessoal' })
     const foreign = drawForeign(office, mulberry32((input.seed ^ hashString(`externa:${next}:${office}`)) >>> 0))
     if (foreign && foreign.id !== ev?.id) items.push({ kind: 'pressao', eventId: foreign.id })
   }

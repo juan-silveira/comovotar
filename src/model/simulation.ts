@@ -569,7 +569,7 @@ export function setup(input: SimInput): SimSetup {
       united: { gdp: a.gdp + b.gdp, pop: popTotal, gdpPc: (a.gdp + b.gdp) / popTotal },
       newEvents: [],
       activeEvents: [],
-      macro: { dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation, selic: MACRO_BASE.selic },
+      macro: { dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation, selic: MACRO_BASE.selic, tradeBalance: MACRO_BASE.tradeBalance },
       climateEvents: [],
       politicalEvents: [],
       institutionalEvents: [],
