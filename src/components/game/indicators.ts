@@ -8,6 +8,7 @@ import { CABINET_LABELS } from '../../model/institutions'
 import { TRANSPARENCY_LABELS } from '../../model/politics'
 import type { SimInput, YearResult } from '../../model/simulation'
 import { socialSeries } from '../../model/social'
+import { macroSeries } from '../../model/macro'
 
 export type Group = 'economia' | 'politica' | 'congresso' | 'justica' | 'clima' | 'sociedade'
 export type Status = 'bom' | 'atencao' | 'ruim' | 'neutro'
@@ -66,6 +67,7 @@ export function buildIndicators(career: CareerState, input: SimInput, results: Y
   const prep = side === 'A' ? p.climatePrepA : p.climatePrepB
   const migration = separated ? b.netMigration : r.A.netMigration
   const soc = socialSeries(career, results, t)
+  const mac = macroSeries(results, t)
   const lawsPassed = career.bills.filter((x) => x.authorIsPlayer && x.state.status === 'lei').length
 
   const list: Indicator[] = [
@@ -116,6 +118,40 @@ export function buildIndicators(career: CareerState, input: SimInput, results: Y
       text: `Índice da bolsa (2023 = 100), retorno de ${fmtSignedPct(inst.marketReturn, 1)} no ano. Reage a decisões, eleições e segurança jurídica e influencia o investimento no ano seguinte.`,
       affects: ['crescimento', 'empresas'],
       series: s((x) => x[side].institutions.market),
+    },
+    {
+      id: 'inflacao',
+      term: 'inflacao',
+      group: 'economia',
+      label: 'Inflação',
+      icon: '🛒',
+      value: `${fmtNum(mac[t].inflation, 1)}%`,
+      status: status(mac[t].inflation, 4.5, 6, false),
+      text: 'Quanto os preços sobem no ano (IPCA, Brasil). A meta é 3%, com tolerância até 4,5%. Sobe com dólar caro, economia aquecida e choques como guerras; acima do teto, corrói o salário e a aprovação de quem governa. Modelo didático.',
+      affects: ['aprovacao', 'juros'],
+      series: mac.slice(Math.max(0, t - 9), t + 1).map((x) => x.inflation),
+    },
+    {
+      id: 'dolar',
+      group: 'economia',
+      label: 'Dólar',
+      icon: '💵',
+      value: `R$ ${fmtNum(mac[t].dollar, 2)}`,
+      status: status(mac[t].dollar / mac[Math.max(0, t - 1)].dollar - 1, 0.05, 0.12, false),
+      text: 'Preço do dólar. Sobe com risco fiscal (dívida crescendo), crises globais e inflação maior que a dos EUA; cai com alta das commodities. Dólar caro encarece combustível e importados, mas ajuda quem exporta.',
+      affects: ['inflacao'],
+      series: mac.slice(Math.max(0, t - 9), t + 1).map((x) => x.dollar),
+    },
+    {
+      id: 'juros',
+      group: 'economia',
+      label: 'Juros (Selic)',
+      icon: '📉',
+      value: `${fmtNum(mac[t].selic, 1)}%`,
+      status: status(mac[t].selic, 9, 13, false),
+      text: 'Juro básico definido pelo Banco Central, que é autônomo: sobe quando a inflação passa da meta. Juro alto segura os preços, mas encarece o crédito, freia a economia e aumenta o custo da dívida pública.',
+      affects: ['divida', 'crescimento'],
+      series: mac.slice(Math.max(0, t - 9), t + 1).map((x) => x.selic),
     },
     {
       id: 'empresas',

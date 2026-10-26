@@ -96,7 +96,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - boom ou queda de commodities;
   - crise climática global e crises migratórias na fronteira;
   - eleições e mudanças de governo em grandes parceiros.
-- [ ] **Câmbio e balança comercial no modelo:** o dólar afeta inflação, dívida externa, exportadores e importadores.
+- [x] **Câmbio, inflação e juros no modelo (didático):** dólar reage a risco fiscal, crises globais e diferença de inflação; inflação ancorada na meta, com repasse do câmbio; Selic reage à inflação; inflação acima do teto custa aprovação. Falta a balança comercial. Ideia original: o dólar afeta inflação, dívida externa, exportadores e importadores.
 - [x] **Política externa (primeira versão):** votação na ONU sobre invasão (condenar, abster-se, mediar), refugiados na fronteira, OCDE × BRICS, Fundo Amazônia e comércio em moedas locais. Ideias originais: neutralidade × alinhamentos (EUA, China, UE, BRICS, OCDE), acordos (Mercosul–UE), ajuda humanitária, sanções. Cada escolha tem ganhos e custos.
 - [ ] **Forças Armadas e soberania:** fronteiras, Amazônia, missões de paz. O papel constitucional das Forças Armadas e o que elas não podem fazer.
 

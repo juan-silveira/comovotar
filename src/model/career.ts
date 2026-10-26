@@ -32,6 +32,7 @@ import {
 import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
 import { difficultyOf, type Difficulty } from './difficulty'
 import { drawForeign, drawPressure, findPressure } from './pressure'
+import { inflationPenalty, macroSeries } from './macro'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -1593,6 +1594,9 @@ function settleOffice(state: CareerState, input: SimInput, results: YearResult[]
     const factor = isExecutive(office) ? 1.5 : 0.7
     s.approval = clamp(s.approval + factor * (terr.growth - 2) * media - 1)
   }
+
+  // Inflação alta corrói a aprovação de quem governa.
+  if (isExecutive(office)) s.approval = clamp(s.approval + inflationPenalty(macroSeries(results, t)[t]?.inflation ?? 0))
 
   chargePromises(s)
 

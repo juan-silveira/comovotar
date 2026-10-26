@@ -324,6 +324,21 @@ describe('saúde, educação, segurança e meio ambiente', () => {
   })
 })
 
+describe('câmbio, inflação e juros', () => {
+  it('partem de 2023; crise financeira encarece o dólar; inflação alta custa aprovação', async () => {
+    const { macroSeries, inflationPenalty, MACRO_BASE } = await import('./macro')
+    const results = simulate(missionInput(mission, 30, []))
+    const base = macroSeries(results, 5)
+    expect(base[0]).toMatchObject({ dollar: MACRO_BASE.dollar, inflation: MACRO_BASE.inflation })
+    const crisis = results.map((r, t) => (t === 3 ? { ...r, newEvents: [...r.newEvents, { id: 'crise-financeira' as const, year: 3, duration: 1, title: '', effectA: 0, effectB: 0, explanation: '' }] } : r))
+    const hit = macroSeries(crisis, 5)
+    expect(hit[3].dollar).toBeGreaterThan(base[3].dollar * 1.1)
+    expect(hit[3].selic).toBeGreaterThan(base[3].selic)
+    expect(inflationPenalty(4)).toBe(0)
+    expect(inflationPenalty(8)).toBeCloseTo(-2.8)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })
