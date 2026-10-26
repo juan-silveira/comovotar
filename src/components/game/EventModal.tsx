@@ -13,6 +13,8 @@ const HEADER: Record<TurnItem['kind'], { label: string; icon: string }> = {
   'bill-pending': { label: 'Tramitação', icon: '📜' },
   career: { label: 'Carreira', icon: '🎯' },
   separatismo: { label: 'Crise federativa', icon: '🧭' },
+  orcamento: { label: 'Orçamento do ano', icon: '💰' },
+  emendas: { label: 'Suas emendas', icon: '🧾' },
 }
 
 /** Carta de evento em pop-up, uma decisão por vez. */

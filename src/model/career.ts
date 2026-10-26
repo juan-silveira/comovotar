@@ -1,10 +1,11 @@
-import { lowerFirst } from '../lib/format'
 // Motor de carreira política: o jogador ocupa um cargo e, a cada ano, toma
 // apenas as decisões que esse cargo permite. Os demais atores (presidentes,
 // congressos, tribunais) são simulados por regras. Inclui projetos de lei,
 // crises, perguntas, eleições, aprovação e pontuação.
 
+import { fmtBRL, lowerFirst } from '../lib/format'
 import { BILLS, findBill, type Level, type Office } from './bills'
+import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
 import { cardSidesAt, cardYear, findCard, DECISION_CARDS, findOption, type DecisionCard, type DecisionChoice, type Side } from './decisions'
 import { mulberry32 } from './events'
@@ -85,6 +86,10 @@ export type TurnItem =
   | { kind: 'bill-pending' }
   | { kind: 'career' }
   | { kind: 'separatismo'; region: Side; support: number; tier: number }
+  /** Proposta de orçamento anual (Executivo) */
+  | { kind: 'orcamento'; support: number; lastGrowth: number }
+  /** Destino das emendas individuais (Legislativo) */
+  | { kind: 'emendas'; value: number; territoryGdp: number; territory: string }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -393,6 +398,10 @@ export function itemKey(item: TurnItem, t: number): string {
       return `career:${t}`
     case 'separatismo':
       return `separatismo:${item.tier}`
+    case 'orcamento':
+      return `orcamento:${t}`
+    case 'emendas':
+      return `emendas:${t}`
   }
 }
 
@@ -444,6 +453,36 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
       const choice = choiceFor(state, input, card, s)
       if (choice && sides.length > 0 && CHALLENGEABLE[card.id]?.includes(choice))
         items.push({ kind: 'stf-card', card, side: s, optionId: choice })
+    }
+  }
+
+  // Orçamento do ano seguinte (Executivo) e emendas (Legislativo).
+  if (office && office !== 'ministro-stf' && state.t >= 1) {
+    const lastGrowth = territoryStats(state, input, results, state.t).growth
+    if (isExecutive(office)) {
+      const support =
+        office === 'presidente' && results[state.t]
+          ? results[state.t][separatedAt(input, state.t) ? side : 'A'].institutions.congressSupport
+          : Math.min(90, Math.max(15, 25 + state.approval * 0.6))
+      items.push({ kind: 'orcamento', support, lastGrowth })
+    } else if (isLegislator(office)) {
+      const uf = state.setup.uf
+      const ufGdp = results[state.t].uf[uf].gdp
+      const muni = state.setup.municipio
+      const value = emendaValue(office, {
+        ufGdp,
+        assembly: assemblySeats(FEDERAL_SEATS[uf]),
+        muniPop: muni?.pop,
+        council: muni ? councilSeats(muni.pop) : undefined,
+      })
+      const local = office === 'vereador' && muni
+      if (value > 0)
+        items.push({
+          kind: 'emendas',
+          value,
+          territoryGdp: local ? muni.gdp : ufGdp,
+          territory: local ? muni.name : uf,
+        })
     }
   }
 
@@ -616,7 +655,71 @@ export function resolveItem(
       return s
     case 'separatismo':
       return resolveSeparatism(s, item, optionId, input)
+    case 'orcamento':
+      return resolveBudget(s, item, optionId, input)
+    case 'emendas':
+      return resolveEmendas(s, item, optionId, input)
   }
+}
+
+/** Efeito do orçamento: vale no ano seguinte; investimento rende nos anos depois. */
+function resolveBudget(s: CareerState, item: Extract<TurnItem, { kind: 'orcamento' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const office = s.office as Office
+  const opt = findBudgetOption(optionId)
+  const out = budgetOutcome(opt, item.support, item.lastGrowth, office)
+  const k = out.keep
+  if (office === 'presidente') {
+    const side = nationalSide(input, s.setup.uf, next)
+    const g = side === 'A' ? 'growthA' : 'growthB'
+    const f = side === 'A' ? 'fiscalA' : 'fiscalB'
+    s.lawEffects = [...s.lawEffects, { fromYear: next, years: 1, effect: { [g]: opt.growthNow * k, [f]: opt.fiscal * k - out.extraEmendas } }]
+    if (opt.growthLater) s.lawEffects = [...s.lawEffects, { fromYear: next + 1, years: opt.laterYears, effect: { [g]: opt.growthLater * k } }]
+  } else {
+    // Estados e municípios têm orçamentos livres menores em relação ao PIB local.
+    const scale = 0.6
+    if (office === 'governador') {
+      s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: 1, growth: opt.growthNow * k * scale }]
+      if (opt.growthLater) s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next + 1, years: opt.laterYears, growth: opt.growthLater * k * scale }]
+    } else {
+      s.muniEffects = [...s.muniEffects, { fromYear: next, years: 1, growth: opt.growthNow * k * scale }]
+      if (opt.growthLater) s.muniEffects = [...s.muniEffects, { fromYear: next + 1, years: opt.laterYears, growth: opt.growthLater * k * scale }]
+    }
+  }
+  s.approval = clamp(s.approval + opt.approval * k + out.approvalDelta)
+  s.log = [...s.log, { year: next, kind: 'info', title: out.title, text: out.text, good: !out.delayed && !out.contingency }]
+  return s
+}
+
+function resolveEmendas(s: CareerState, item: Extract<TurnItem, { kind: 'emendas' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const opt = findEmendaOption(optionId)
+  const growth = emendaGrowth(opt, item.value, item.territoryGdp)
+  if (s.office === 'vereador') s.muniEffects = [...s.muniEffects, { fromYear: next, years: opt.years, growth }]
+  else s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: opt.years, growth }]
+  s.approval = clamp(s.approval + opt.approval)
+  s.capital += opt.capital
+  const rng = mulberry32((input.seed ^ hashString(`emenda:${next}`)) >>> 0)
+  const scandal = rng() < opt.scandalRisk
+  if (scandal) {
+    s.approval = clamp(s.approval - 6)
+    s.log = [
+      ...s.log,
+      {
+        year: next,
+        kind: 'info',
+        title: 'Reportagem questiona destino das suas emendas',
+        text: `A imprensa não conseguiu rastrear onde foram parar ${fmtBRL(item.value)} transferidos a prefeituras aliadas. O caso chegou ao Tribunal de Contas.`,
+        good: false,
+      },
+    ]
+  } else {
+    s.log = [
+      ...s.log,
+      { year: next, kind: 'info', title: `Emendas: ${lowerFirst(opt.label)}`, text: `${fmtBRL(item.value)} destinados. ${opt.description}`, good: true },
+    ]
+  }
+  return s
 }
 
 export interface SeparatismOption {

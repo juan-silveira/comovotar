@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
-import { canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, settleYear, type CareerState } from './career'
+import { canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
+import { budgetOutcome, emendaValue, findBudgetOption } from './budget'
 import { drawClimate } from './climate'
 import { congressPassProbability, institutionsYear, INITIAL_INSTITUTIONS, senateApproval, DEFAULT_INSTITUTIONS_COEFFICIENTS } from './institutions'
 import { MISSIONS, missionInput } from './game'
@@ -51,6 +52,54 @@ describe('carreira', () => {
     const s = chooseNextOffice({ ...newCareer({ office: 'deputado-federal', uf: 'BA', municipio: null, party: 'MTI' }), t: 3, office: null }, 'governador')
     expect(s.candidacy).toBe('governador')
     expect(s.nextElection).toBe(7) // 2030
+  })
+})
+
+describe('orçamento e emendas', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+
+  it('o presidente recebe o orçamento a partir do segundo ano; investimento rende nos anos seguintes', () => {
+    const pres = { ...newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' }), t: 2 }
+    const item = pendingItems(pres, input, results).find((i) => i.kind === 'orcamento')
+    expect(item).toBeTruthy()
+    const after = resolveItem(pres, { ...item!, kind: 'orcamento', support: 60, lastGrowth: 2 }, 'investimento', input, results)
+    const budget = after.lawEffects.filter((l) => l.years !== undefined)
+    expect(budget).toHaveLength(2)
+    expect(budget[0]).toMatchObject({ fromYear: 3, years: 1 })
+    expect(budget[1]).toMatchObject({ fromYear: 4, years: 4 })
+    expect(budget[0].effect.fiscalA).toBeLessThan(0)
+  })
+
+  it('o efeito do orçamento dura só o período definido', () => {
+    const withBudget = { ...input, lawEffects: [{ fromYear: 3, years: 1, effect: { fiscalA: -1 } }] }
+    const r = simulate(withBudget, 5)
+    expect(r[3].A.fiscalBalance).toBeLessThan(results[3].A.fiscalBalance - 0.9)
+    expect(r[4].A.fiscalBalance - results[4].A.fiscalBalance).toBeCloseTo(0, 0)
+  })
+
+  it('pouco apoio atrasa o orçamento e economia fraca obriga a contingenciar', () => {
+    const social = findBudgetOption('social')
+    const weak = budgetOutcome(social, 30, 0.5, 'presidente')
+    expect(weak.delayed).toBe(true)
+    expect(weak.contingency).toBe(true)
+    expect(weak.keep).toBe(0.5)
+    expect(weak.text).toContain('Congresso')
+    expect(budgetOutcome(social, 60, 2, 'governador').keep).toBe(1)
+  })
+
+  it('emendas individuais federais: senador recebe mais que deputado, como na EC 126/2022', () => {
+    const dep = emendaValue('deputado-federal')
+    const sen = emendaValue('senador')
+    expect(dep).toBeGreaterThan(30e6)
+    expect(dep).toBeLessThan(60e6)
+    expect(sen / dep).toBeCloseTo((0.45 / 81) / (1.55 / 513), 5)
+    const deputy = { ...newCareer({ office: 'deputado-federal', uf: 'RR', municipio: null, party: 'UDC' }), t: 1 }
+    const item = pendingItems(deputy, input, results).find((i) => i.kind === 'emendas')
+    expect(item).toBeTruthy()
+    const after = resolveItem(deputy, item!, 'governo', input, results)
+    expect(after.capital).toBe(deputy.capital + 3)
+    expect(after.ufEffects.at(-1)!.growth).toBeGreaterThan(0)
   })
 })
 

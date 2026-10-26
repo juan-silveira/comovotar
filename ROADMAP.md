@@ -46,7 +46,8 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 - [x] **Promessas de campanha, possível ou impossível?** Calculadora: Bolsa Família de R$ X, salário mínimo de R$ Y, contratar professores, dobrar a saúde… Mostra custo, % do orçamento livre, % da receita e como pagar (cortes, impostos, dívida, inflação).
 - [x] **Previdência e salário mínimo:** déficit do RGPS, 69% dos benefícios iguais a 1 mínimo, custo de R$ 1 no mínimo, envelhecimento (IBGE) e projeção de 30 anos com cenários.
 - [x] **Dívida e juros:** dívida interna × externa, Selic, quem empresta ao governo, dinâmica da dívida ("quanto de superávit estabiliza?").
-- [ ] **Orçamento anual no jogo (LOA):** o presidente, governador ou prefeito propõe; o Legislativo emenda e vota; contingenciamento no meio do ano; Lei de Responsabilidade Fiscal.
+- [x] **Orçamento anual no jogo (LOA):** o presidente, governador ou prefeito escolhe entre austero, equilibrado, investimento ou social (com prós e contras); o Legislativo cobra emendas ou atrasa a votação conforme o apoio; economia fraca obriga a contingenciar (LRF, art. 9º); investimento rende nos anos seguintes.
+- [x] **Emendas parlamentares no jogo:** deputados, senadores e vereadores decidem o destino das emendas individuais (saúde, obra no reduto, emenda Pix, troca com o governo), com valor de 2026 e efeito proporcional ao tamanho da economia local.
 - [ ] **Promessas no jogo:** ao se candidatar, o jogador escolhe promessas. Cumprir rende aprovação; prometer o impossível rende votos agora e cobrança depois.
 - [ ] **Mais pautas em debate:** isenção do IR, tarifa zero, reforma tributária, privatizações, porte de armas, maioridade penal, cotas, aborto (apresentados de forma neutra, com o que diz a lei e os dois lados).
 

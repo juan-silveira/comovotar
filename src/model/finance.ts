@@ -48,6 +48,7 @@ export const FINANCE = {
   bolsaFamilia: s(158.63e9, 'LOA 2026', 'MPO, Orçamento Cidadão', LOA),
   discricionarias: s(244.4e9, '4º bim/2026', 'MPO, RARDP (Executivo)', RARDP),
   emendas: s(61e9, 'LOA 2026', 'Agência Senado (individuais, bancada e comissão)', 'https://www12.senado.leg.br/noticias/materias/2026/01/15/orcamento-2026-e-sancionado-com-previsao-de-superavit-de-rs-34-2-bi'),
+  emendasIndividuais: s(26.6e9, 'LOA 2026', 'Agência Senado (emendas individuais; bancada R$ 11,2 bi; comissão R$ 12,1 bi)', 'https://www12.senado.leg.br/noticias/materias/2026/01/15/orcamento-2026-e-sancionado-com-previsao-de-superavit-de-rs-34-2-bi'),
   pisoSaude: s(245.5e9, 'PLOA 2026', 'Nota técnica Conorf/Conof (15% da RCL, art. 198)', 'https://www12.senado.leg.br/orcamento/documentos/estudos/tipos-de-estudos/notas-tecnicas-e-informativos/notatecnicaconjunta_ploa-2026_.pdf'),
   pisoEducacao: s(133.6e9, 'PLOA 2026', 'Nota técnica Conorf/Conof (18% dos impostos, art. 212)', 'https://www12.senado.leg.br/orcamento/documentos/estudos/tipos-de-estudos/notas-tecnicas-e-informativos/notatecnicaconjunta_ploa-2026_.pdf'),
   obrigatoriasShare: s(92, 'LOA 2026', 'MPO, Orçamento Cidadão (92% obrigatórias, 8% discricionárias)', LOA),

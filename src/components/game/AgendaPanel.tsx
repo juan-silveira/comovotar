@@ -1,5 +1,6 @@
-import { lowerFirst } from '../../lib/format'
 import { useState } from 'react'
+import { fmtBRL, fmtNum, lowerFirst } from '../../lib/format'
+import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
 import { billArguments, billEffectSummary, findBill, type BillTemplate } from '../../model/bills'
 import { canRunFor, CRISIS_OPTIONS, nextElectionOfType, separatismOptions, type CareerState, type TurnItem } from '../../model/career'
 import { findOption } from '../../model/decisions'
@@ -15,6 +16,10 @@ interface Choice {
   description?: string
   cost?: number
   disabled?: boolean
+  pros?: string[]
+  cons?: string[]
+  /** Linha extra (ex.: efeito estimado) */
+  note?: string
 }
 
 function Choices({ choices, onChoose, capital }: { choices: Choice[]; onChoose: (id: string) => void; capital: number }) {
@@ -35,6 +40,23 @@ function Choices({ choices, onChoose, capital }: { choices: Choice[]; onChoose: 
               {c.cost ? <span className="tnum text-xs font-normal text-muted">{c.cost} de capital</span> : null}
             </div>
             {c.description && <div className="mt-0.5 text-xs leading-relaxed text-ink-2">{c.description}</div>}
+            {(c.pros?.length || c.cons?.length) && (
+              <ul className="mt-1.5 space-y-0.5 text-xs leading-snug">
+                {c.pros?.map((x) => (
+                  <li key={x} className="text-ink-2">
+                    <span className="font-bold text-good">+ </span>
+                    {x}
+                  </li>
+                ))}
+                {c.cons?.map((x) => (
+                  <li key={x} className="text-ink-2">
+                    <span className="font-bold text-bad">− </span>
+                    {x}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {c.note && <div className="mt-1 text-[11px] text-muted">{c.note}</div>}
           </button>
         )
       })}
@@ -241,6 +263,85 @@ export function AgendaItem({
         </div>
       )
     }
+    case 'orcamento': {
+      const level = office === 'presidente' ? 'federal' : office === 'governador' ? 'estadual' : 'municipal'
+      const house = office === 'presidente' ? 'Congresso' : office === 'governador' ? 'Assembleia' : 'Câmara Municipal'
+      const support = Math.round(item.support)
+      return (
+        <div>
+          <Tag>Lei Orçamentária Anual</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Que orçamento você envia ao Legislativo?</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            O orçamento diz quanto o governo vai arrecadar e gastar no ano. Só cerca de{' '}
+            <strong className="text-ink">{fmtNum(FREE_SHARE[level], 0)}%</strong> dele é livre: o resto já chega “carimbado” com
+            salários, aposentadorias, mínimos de saúde e educação e juros da dívida. Você escolhe o que fazer com essa parte.
+          </p>
+          <p className="mt-2 rounded-lg bg-surface-2 p-2 text-xs text-ink-2">
+            Apoio ao governo no {house}: <strong className="text-ink">{support}%</strong>.{' '}
+            {support < 35
+              ? 'Pouco apoio: o orçamento pode atrasar e custar mais emendas.'
+              : support < 50
+                ? 'Apoio dividido: espere negociação por emendas.'
+                : 'Maioria: o texto deve passar sem grandes mudanças.'}{' '}
+            {item.lastGrowth < 1 && 'A economia cresceu pouco no último ano: gastos extras podem ser contingenciados.'}
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art165" />
+            <LegalRefChip id="art198" />
+            <LegalRefChip id="lrf9" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={BUDGET_OPTIONS.map((o) => ({
+              id: o.id,
+              label: o.label,
+              description: o.description,
+              pros: o.pros,
+              cons: o.cons,
+              note:
+                office === 'presidente' && o.fiscal !== 0
+                  ? `Impacto no saldo das contas: ${o.fiscal > 0 ? '+' : '−'}${fmtNum(Math.abs(o.fiscal), 1)}% do PIB no ano.`
+                  : undefined,
+            }))}
+          />
+        </div>
+      )
+    }
+    case 'emendas':
+      return (
+        <div>
+          <Tag>Emendas parlamentares</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Para onde vão as suas emendas?</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            Todo ano você indica onde gastar uma parte do orçamento: cerca de <strong className="text-ink">{fmtBRL(item.value)}</strong>
+            {office === 'deputado-estadual' || office === 'vereador' ? ' (estimativa ilustrativa)' : ' (valor de 2026, dividido igualmente)'}.
+            {office === 'deputado-federal' || office === 'senador' ? ' Metade precisa ir para a saúde, e o governo é obrigado a pagar.' : ''}{' '}
+            Isso equivale a {item.value / item.territoryGdp < 1e-5 ? 'menos de 0,001' : fmtNum((item.value / item.territoryGdp) * 100, 3)}% do PIB de {item.territory}: em lugares
+            pequenos, faz diferença; em lugares grandes, quase não aparece.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art166" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={EMENDA_OPTIONS.map((o) => ({
+              id: o.id,
+              label: o.label,
+              description: o.description,
+              pros: o.pros,
+              cons: o.cons,
+              note: `${(() => {
+                const g = emendaGrowth(o, item.value, item.territoryGdp)
+                return g < 0.001
+                  ? `Efeito na economia de ${item.territory}: praticamente nenhum, pelo tamanho da economia local.`
+                  : `Efeito estimado na economia de ${item.territory}: +${fmtNum(g, 3)} p.p. por ano durante ${o.years} ${o.years === 1 ? 'ano' : 'anos'}.`
+              })()}${o.capital ? ` +${o.capital} de capital político.` : ''}`,
+            }))}
+          />
+        </div>
+      )
     case 'separatismo':
       return (
         <div>

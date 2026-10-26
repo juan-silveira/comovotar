@@ -29,6 +29,7 @@ export function fmtSignedPct(v: number, digits = 1): string {
 export function fmtBRL(v: number): string {
   if (Math.abs(v) >= 1e12) return `R$ ${nf(2).format(v / 1e12)} tri`
   if (Math.abs(v) >= 1e9) return `R$ ${nf(1).format(v / 1e9)} bi`
+  if (Math.abs(v) >= 1e6) return `R$ ${nf(1).format(v / 1e6)} mi`
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v)
 }
 
