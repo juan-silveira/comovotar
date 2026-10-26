@@ -4,11 +4,11 @@ import type { Level, Office } from '../model/bills'
 import { CONSTITUTION } from '../model/constitution'
 import {
   customBillId,
-  ProposalAnalysisSchema,
   sanitizeAnalysis,
   type CustomBill,
   type ProposalAnalysis,
 } from '../model/customBill'
+import { ProposalAnalysisSchema } from '../model/customBillSchema'
 import { ROLES } from '../model/roles'
 import { aiChat, aiStructured, type ChatMessage } from './ai'
 
