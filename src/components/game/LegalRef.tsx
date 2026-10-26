@@ -23,6 +23,11 @@ export function LegalRefChip({ id }: { id: string }) {
         >
           <strong className="block text-ink">{r.title}</strong>
           {r.summary}
+          {r.url && (
+            <a href={r.url} target="_blank" rel="noreferrer" className="mt-1 block font-semibold text-ink underline">
+              Ler o texto oficial ↗
+            </a>
+          )}
         </span>
       )}
     </span>

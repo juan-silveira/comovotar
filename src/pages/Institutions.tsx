@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { LegalRefChip } from '../components/game/LegalRef'
 import { Card, Segmented } from '../components/ui'
-import { CONSTITUTION } from '../model/constitution'
+import { CONSTITUTION, legalRef } from '../model/constitution'
 import { GLOSSARY } from '../model/glossary'
 import { OFFICE_ORDER, ROLES } from '../model/roles'
 
@@ -294,7 +294,14 @@ export function Institutions() {
               <dt className="text-sm font-semibold text-ink">
                 {r.title} <span className="text-xs font-normal text-muted">· {r.ref}</span>
               </dt>
-              <dd className="mt-1 text-xs leading-relaxed text-ink-2">{r.summary}</dd>
+              <dd className="mt-1 text-xs leading-relaxed text-ink-2">
+                {r.summary}
+                {legalRef(r.id)?.url && (
+                  <a href={legalRef(r.id)!.url} target="_blank" rel="noreferrer" className="ml-1 font-semibold text-ink underline">
+                    Texto oficial ↗
+                  </a>
+                )}
+              </dd>
             </div>
           ))}
         </dl>

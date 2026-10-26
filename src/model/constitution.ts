@@ -8,6 +8,8 @@ export interface LegalRef {
   ref: string
   title: string
   summary: string
+  /** Texto oficial (Planalto ou STF) */
+  url?: string
 }
 
 export const CONSTITUTION: Record<string, LegalRef> = {
@@ -359,6 +361,28 @@ export const CONSTITUTION: Record<string, LegalRef> = {
   },
 }
 
+const PLANALTO = 'https://www.planalto.gov.br/ccivil_03'
+const CF = `${PLANALTO}/constituicao/constituicao.htm`
+
+/** Endereço do texto oficial de cada referência. */
+const OFFICIAL: Record<string, string> = {
+  lrf9: `${PLANALTO}/leis/lcp/lcp101.htm`,
+  lrf14: `${PLANALTO}/leis/lcp/lcp101.htm`,
+  cp317: `${PLANALTO}/decreto-lei/del2848compilado.htm`,
+  lc135: `${PLANALTO}/leis/lcp/lcp135.htm`,
+  l9504: `${PLANALTO}/leis/l9504.htm`,
+  art142: `${CF}#art142`,
+  adct88: `${PLANALTO}/leis/lcp/lcp157.htm`,
+  adi5127: 'https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=5127',
+  re1054110: 'https://portal.stf.jus.br/processos/listarProcessos.asp?classe=RE&numeroProcesso=1054110',
+  lc179: `${PLANALTO}/leis/lcp/lcp179.htm`,
+  lei12608: `${PLANALTO}/_ato2011-2014/2012/lei/l12608.htm`,
+}
+
 export function legalRef(id: string): LegalRef | undefined {
-  return CONSTITUTION[id]
+  const r = CONSTITUTION[id]
+  if (!r) return undefined
+  // Artigos da Constituição: âncora do artigo no texto oficial do Planalto.
+  const art = id.match(/^art(\d+)/)
+  return { ...r, url: OFFICIAL[id] ?? (art ? `${CF}#art${art[1]}` : undefined) }
 }
