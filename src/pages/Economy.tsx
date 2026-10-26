@@ -211,9 +211,24 @@ function PautasTab() {
   const [w, setW] = useState<WorkweekInput>(DEFAULT_WORKWEEK)
   const impact = workweekImpact(w)
   const set = (patch: Partial<WorkweekInput>) => setW((v) => ({ ...v, ...patch }))
+  const [pautaId, setPautaId] = useState(PAUTAS[0].id)
   return (
     <div className="space-y-4">
-      {PAUTAS.map((p) => (
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Pauta">
+        {PAUTAS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            role="radio"
+            aria-checked={pautaId === p.id}
+            onClick={() => setPautaId(p.id)}
+            className={`min-h-9 rounded-full border px-3 text-sm ${pautaId === p.id ? 'border-accent bg-accent text-accent-ink' : 'border-line text-ink hover:bg-surface-2'}`}
+          >
+            {p.title}
+          </button>
+        ))}
+      </div>
+      {PAUTAS.filter((p) => p.id === pautaId).map((p) => (
         <div key={p.id} className="space-y-4">
           <Section title={p.title}>
             <p>
@@ -286,7 +301,7 @@ function PautasTab() {
                   <li key={x}>{x}</li>
                 ))}
               </ul>
-              {p.billId && <p className="text-xs text-muted">No jogo, deputados e senadores podem propor esta PEC.</p>}
+              {p.billId && <p className="text-xs text-muted">No jogo, esta proposta pode ser apresentada e votada no Legislativo.</p>}
             </Section>
           </div>
         </div>
