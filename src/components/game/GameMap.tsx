@@ -124,6 +124,7 @@ export function GameMap({
         <Segmented label="Camada do mapa" value={layer} onChange={setLayer} options={layers} />
       </div>
       <BrazilMap
+        zoomable
         ariaLabel={`Mapa do Brasil em ${r.year}, camada ${LAYERS.find((l) => l.value === layer)?.label}`}
         fill={fill}
         partition={partition}

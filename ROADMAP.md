@@ -120,7 +120,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - barra inferior com Mapa, Agenda, Leis, País e Perfil;
   - decisões em cartas de deslizar (no estilo Reigns) com confirmação;
   - indicadores em carrossel;
-  - mapa com zoom por toque.
+  - [x] mapa com zoom por pinça, roda do mouse e botões, e arraste quando ampliado.
 - [ ] **Identidade visual própria:** ilustrações de cargos e eventos, ícones, animações curtas (votações, sanção, veto), sons opcionais e vibração no celular.
 - [x] **Votação visual:** semicírculo animado com cada cadeira acendendo com o voto, partidos da esquerda para a direita.
 - [x] **Tutorial jogável:** dica curta na primeira vez que cada tipo de decisão aparece (guardada no navegador), além do guia "Como jogar".

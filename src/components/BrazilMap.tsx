@@ -1,5 +1,5 @@
 import { geoMercator, geoPath } from 'd3-geo'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { feature, mesh } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
 import type { FeatureCollection, Geometry } from 'geojson'
@@ -69,7 +69,17 @@ export interface MapProps {
   height?: number | string
   /** Desenha a fronteira entre os blocos (desligar com o país unido) */
   showBorder?: boolean
+  /** Permite ampliar (pinça, roda do mouse, botões) e arrastar o mapa */
+  zoomable?: boolean
 }
+
+interface View {
+  k: number
+  x: number
+  y: number
+}
+
+const MAX_ZOOM = 6
 
 const ICON: Record<MapMarker['kind'], string> = {
   seca: '☀',
@@ -97,7 +107,7 @@ export function weightedCentroid(ufs: UF[], weight: (uf: UF) => number): [number
   return w === 0 ? [WIDTH / 2, HEIGHT / 2] : [x / w, y / w]
 }
 
-export function BrazilMap({ fill, partition, selected, onSelect, flows = [], markers = [], tooltip, ariaLabel, height, showBorder = true }: MapProps) {
+export function BrazilMap({ fill, partition, selected, onSelect, flows = [], markers = [], tooltip, ariaLabel, height, showBorder = true, zoomable = false }: MapProps) {
   const c = useThemeColors()
   const [hover, setHover] = useState<UF | null>(null)
 
@@ -116,9 +126,107 @@ export function BrazilMap({ fill, partition, selected, onSelect, flows = [], mar
   const markersByUf = new Map<UF, MapMarker[]>()
   for (const m of markers) markersByUf.set(m.uf, [...(markersByUf.get(m.uf) ?? []), m])
 
+  // Zoom e arraste -------------------------------------------------------------
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [view, setView] = useState<View>({ k: 1, x: 0, y: 0 })
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const gesture = useRef<{ dist: number; view: View; mid: [number, number] } | null>(null)
+  const moved = useRef(false)
+
+  const clampView = (v: View): View => {
+    const k = Math.min(MAX_ZOOM, Math.max(1, v.k))
+    const w = WIDTH / k
+    const h = HEIGHT / k
+    return { k, x: Math.min(WIDTH - w, Math.max(0, v.x)), y: Math.min(HEIGHT - h, Math.max(0, v.y)) }
+  }
+  /** Converte coordenadas da tela para o sistema do mapa, respeitando o enquadramento do SVG. */
+  const toMap = (clientX: number, clientY: number, v: View): [number, number] => {
+    const r = svgRef.current?.getBoundingClientRect()
+    if (!r) return [WIDTH / 2, HEIGHT / 2]
+    const w = WIDTH / v.k
+    const h = HEIGHT / v.k
+    const scale = Math.min(r.width / w, r.height / h)
+    const ox = (r.width - w * scale) / 2
+    const oy = (r.height - h * scale) / 2
+    return [v.x + (clientX - r.left - ox) / scale, v.y + (clientY - r.top - oy) / scale]
+  }
+  const zoomAt = (factor: number, center: [number, number], from: View = view) => {
+    const k = Math.min(MAX_ZOOM, Math.max(1, from.k * factor))
+    const ratio = from.k / k
+    setView(clampView({ k, x: center[0] - (center[0] - from.x) * ratio, y: center[1] - (center[1] - from.y) * ratio }))
+  }
+  useEffect(() => {
+    const el = svgRef.current
+    if (!zoomable || !el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      setView((v) => {
+        const c = toMap(e.clientX, e.clientY, v)
+        const k = Math.min(MAX_ZOOM, Math.max(1, v.k * (e.deltaY < 0 ? 1.25 : 0.8)))
+        const ratio = v.k / k
+        return clampView({ k, x: c[0] - (c[0] - v.x) * ratio, y: c[1] - (c[1] - v.y) * ratio })
+      })
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoomable])
+
+  const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (!zoomable) return
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    moved.current = false
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()]
+      gesture.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), view, mid: toMap((a.x + b.x) / 2, (a.y + b.y) / 2, view) }
+    }
+  }
+  const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (!zoomable || !pointers.current.has(e.pointerId)) return
+    const prev = pointers.current.get(e.pointerId)!
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (pointers.current.size === 2 && gesture.current) {
+      const [a, b] = [...pointers.current.values()]
+      const g = gesture.current
+      moved.current = true
+      zoomAt(Math.hypot(a.x - b.x, a.y - b.y) / Math.max(1, g.dist), g.mid, g.view)
+      return
+    }
+    if (pointers.current.size === 1 && view.k > 1) {
+      const dx = e.clientX - prev.x
+      const dy = e.clientY - prev.y
+      if (Math.abs(dx) + Math.abs(dy) > 2) moved.current = true
+      const r = svgRef.current?.getBoundingClientRect()
+      if (!r) return
+      const scale = Math.min(r.width / (WIDTH / view.k), r.height / (HEIGHT / view.k))
+      setView((v) => clampView({ ...v, x: v.x - dx / scale, y: v.y - dy / scale }))
+    }
+  }
+  const onPointerUp = (e: ReactPointerEvent<SVGSVGElement>) => {
+    pointers.current.delete(e.pointerId)
+    if (pointers.current.size < 2) gesture.current = null
+  }
+  const select = (uf: UF) => {
+    if (moved.current) return
+    onSelect?.(uf)
+  }
+  const vb = `${view.x} ${view.y} ${WIDTH / view.k} ${HEIGHT / view.k}`
+
   return (
     <div className="relative" style={{ height }}>
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={ariaLabel} className="h-full w-full">
+      <svg
+        ref={svgRef}
+        viewBox={vb}
+        role="img"
+        aria-label={ariaLabel}
+        className="h-full w-full"
+        style={zoomable ? { touchAction: view.k > 1 ? 'none' : 'pan-y' } : undefined}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onPointerLeave={onPointerUp}
+      >
         <defs>
           <marker id="arrow-mig" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill={c.ink} />
@@ -141,7 +249,7 @@ export function BrazilMap({ fill, partition, selected, onSelect, flows = [], mar
                 className={onSelect ? 'cursor-pointer' : undefined}
                 onMouseEnter={() => setHover(uf)}
                 onMouseLeave={() => setHover((h) => (h === uf ? null : h))}
-                onClick={() => onSelect?.(uf)}
+                onClick={() => select(uf)}
                 tabIndex={onSelect ? 0 : -1}
                 role={onSelect ? 'button' : undefined}
                 aria-label={tooltip ? tooltip(uf) : uf}
@@ -236,6 +344,21 @@ export function BrazilMap({ fill, partition, selected, onSelect, flows = [], mar
           })}
         </g>
       </svg>
+      {zoomable && (
+        <div className="absolute right-2 bottom-2 flex flex-col overflow-hidden rounded-lg border border-line bg-surface/90 shadow">
+          <button type="button" aria-label="Ampliar o mapa" className="grid size-9 place-items-center text-lg text-ink hover:bg-surface-2" onClick={() => zoomAt(1.5, [view.x + WIDTH / view.k / 2, view.y + HEIGHT / view.k / 2])}>
+            +
+          </button>
+          <button type="button" aria-label="Reduzir o mapa" className="grid size-9 place-items-center border-t border-line text-lg text-ink hover:bg-surface-2" onClick={() => zoomAt(1 / 1.5, [view.x + WIDTH / view.k / 2, view.y + HEIGHT / view.k / 2])}>
+            −
+          </button>
+          {view.k > 1 && (
+            <button type="button" aria-label="Ver o Brasil inteiro" className="grid size-9 place-items-center border-t border-line text-sm text-ink hover:bg-surface-2" onClick={() => setView({ k: 1, x: 0, y: 0 })}>
+              ⟲
+            </button>
+          )}
+        </div>
+      )}
       {hover && tooltip && (
         <div className="pointer-events-none absolute top-2 left-2 max-w-[70%] rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink shadow-lg">
           {tooltip(hover)}
