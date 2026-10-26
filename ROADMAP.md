@@ -73,15 +73,15 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 - [ ] **Obstrução:** pedidos de vista, kit obstrução, falta de quórum proposital, retirada de pauta.
 - [ ] **Centrão e chantagem:** preço dos votos sobe quando a aprovação cai; cargos em estatais; "pautas-bomba" quando o governo enfraquece.
-- [ ] **CPIs:** a oposição coleta 1/3 de assinaturas e o governo tenta barrar; desgaste na mídia e possíveis descobertas.
-- [ ] **Controle e burocracia:** TCU e TCEs barram obras, licitações demoram, a Lei de Responsabilidade Fiscal limita gastos com pessoal e há risco de crime de responsabilidade e impeachment.
+- [x] **CPIs:** parlamentares decidem se assinam (1/3 da casa) ou ajudam o governo a barrar; governantes reagem a CPIs contra a sua gestão (barrar, colaborar ou contra-atacar), que podem revelar esquemas.
+- [x] **Controle (primeira parte):** TCU e TCEs podem suspender obras do orçamento de investimento, atrasando o retorno. Falta: licitações demoram, a Lei de Responsabilidade Fiscal limita gastos com pessoal e há risco de crime de responsabilidade e impeachment.
 - [ ] **Judicialização:** toda medida controversa pode ir ao STF; liminares; tempo de julgamento.
 - [ ] **Corporações e grupos de interesse:** servidores, agro, indústria, bancos, sindicatos, igrejas e movimentos sociais têm pautas, greves, lobby e financiamento de campanha.
 - [ ] **Mídia e redes:** narrativas, *fake news*, checagem, crises de imagem; a mídia amplia ou abafa conforme o tema.
 - [ ] **Federalismo:** prefeitos e governadores dependem de transferências e emendas; conflito de competências; guerra fiscal.
 - [ ] **Execução lenta:** uma lei aprovada não vira resultado no ano seguinte (regulamentação, licitação, obra, fiscalização).
-- [ ] **Escândalos e investigações:** Polícia Federal e Ministério Público; delações; consequências eleitorais e jurídicas.
-- [ ] **Impeachment:** autorização pela Câmara (2/3) e julgamento pelo Senado (2/3), jogável dos dois lados.
+- [x] **Escândalos e investigações:** reportagem, inquérito, denúncia, julgamento, delação e Ficha Limpa (ver patrimônio).
+- [x] **Impeachment:** jogável dos dois lados: o governante impopular escolhe ceder cargos ao Centrão, mobilizar apoiadores, confiar na defesa ou renunciar; deputados e senadores votam o afastamento do presidente. Regras de presidente (Lei 1.079/1950), governador e prefeito (DL 201/1967).
 
 ## Fase 3 — O mundo lá fora (crises externas e geopolítica)
 

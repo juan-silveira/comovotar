@@ -19,6 +19,16 @@ import {
   type CampaignSpend,
   type CriminalCase,
 } from './wealth'
+import {
+  AUDIT_SUSPENSION_CHANCE,
+  auditBody,
+  CPI_TOPICS,
+  cpiSignatures,
+  impeachmentRules,
+  INHABILITATION_YEARS,
+  removalChance,
+  type ImpeachmentChoice,
+} from './governance'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -113,6 +123,14 @@ export type TurnItem =
   | { kind: 'defesa'; amount: number; lawyerCost: number }
   /** Como financiar a campanha */
   | { kind: 'campanha'; office: Office; ceiling: number }
+  /** Pedido de CPI na casa do jogador (Legislativo) */
+  | { kind: 'cpi'; topic: string; needed: number; house: string; inGovernment: boolean }
+  /** CPI sobre o governo do jogador (Executivo) */
+  | { kind: 'cpi-governo'; topic: string }
+  /** Processo de impeachment contra o jogador (Executivo) */
+  | { kind: 'impeachment'; support: number }
+  /** Votação do impeachment do presidente (deputados e senadores) */
+  | { kind: 'impeachment-voto'; govApproval: number; inGovernment: boolean }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -460,6 +478,14 @@ export function itemKey(item: TurnItem, t: number): string {
       return `defesa:${t}`
     case 'campanha':
       return `campanha:${t}`
+    case 'cpi':
+      return `cpi:${t}`
+    case 'cpi-governo':
+      return `cpi-governo:${t}`
+    case 'impeachment':
+      return `impeachment:${t}`
+    case 'impeachment-voto':
+      return `impeachment-voto:${t}`
   }
 }
 
@@ -523,6 +549,10 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
           ? results[state.t][separatedAt(input, state.t) ? side : 'A'].institutions.congressSupport
           : Math.min(90, Math.max(15, 25 + state.approval * 0.6))
       items.push({ kind: 'orcamento', support, lastGrowth })
+      const rng = mulberry32((input.seed ^ hashString(`governo:${next}:${office}`)) >>> 0)
+      // Impeachment: só com aprovação e apoio muito baixos.
+      if (state.approval < 30 && support < 40 && rng() < 0.6) items.push({ kind: 'impeachment', support })
+      else if (rng() < 0.18) items.push({ kind: 'cpi-governo', topic: CPI_TOPICS[Math.floor(rng() * CPI_TOPICS.length)] })
     } else if (isLegislator(office)) {
       const uf = state.setup.uf
       const ufGdp = results[state.t].uf[uf].gdp
@@ -533,6 +563,25 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
         muniPop: muni?.pop,
         council: muni ? councilSeats(muni.pop) : undefined,
       })
+      const rng = mulberry32((input.seed ^ hashString(`legislativo:${next}:${office}`)) >>> 0)
+      if (rng() < 0.25) {
+        const { needed, house } = cpiSignatures(office, muni ? councilSeats(muni.pop) : 21, assemblySeats(FEDERAL_SEATS[uf]))
+        items.push({
+          kind: 'cpi',
+          topic: CPI_TOPICS[Math.floor(rng() * CPI_TOPICS.length)],
+          needed,
+          house,
+          inGovernment: playerInGovernment(state, input, results, officeLevel(office), next),
+        })
+      }
+      // Impeachment do presidente: deputados e senadores votam quando o governo nacional desaba.
+      const nat = results[state.t]
+      if ((office === 'deputado-federal' || office === 'senador') && nat && !separatedAt(input, state.t)) {
+        const gov = nat.A.approval
+        const cong = nat.A.institutions.congressSupport
+        if (gov < 28 && cong < 40 && rng() < 0.4)
+          items.push({ kind: 'impeachment-voto', govApproval: gov, inGovernment: playerInGovernment(state, input, results, 'federal', next) })
+      }
       const local = office === 'vereador' && muni
       if (value > 0)
         items.push({
@@ -623,6 +672,13 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
   }
 
   return items.filter((it) => !state.resolved.includes(itemKey(it, next)))
+}
+
+/** O partido do jogador está na coalizão do governo do nível indicado? */
+function playerInGovernment(state: CareerState, input: SimInput, results: YearResult[], level: Level, t: number): boolean {
+  const ctx = legislativeContext(state, input, results, level, t, level === 'federal' ? 'deputado-federal' : level === 'estadual' ? 'deputado-estadual' : 'vereador', state.setup.party)
+  const coalition = buildCoalition(ctx.chambers[0], ctx.executiveParty, ctx.executiveCabinet)
+  return coalition.has(findParty(state.setup.party)?.id ?? state.setup.party)
 }
 
 /** Cargo em disputa no ano `next`, se o jogador estiver em campanha. */
@@ -753,6 +809,14 @@ export function resolveItem(
       return resolveEmendas(s, item, optionId, input)
     case 'oferta':
       return resolveOffer(s, item, optionId)
+    case 'cpi':
+      return resolveCpi(s, item, optionId, input)
+    case 'cpi-governo':
+      return resolveCpiGov(s, item, optionId, input)
+    case 'impeachment':
+      return resolveImpeachment(s, item, optionId as ImpeachmentChoice, input)
+    case 'impeachment-voto':
+      return resolveImpeachmentVote(s, item, optionId, input)
     case 'defesa': {
       if (!s.criminalCase) return s
       const defense = optionId as CriminalCase['defense']
@@ -779,6 +843,125 @@ export function resolveItem(
       return s
     }
   }
+}
+
+function resolveCpi(s: CareerState, item: Extract<TurnItem, { kind: 'cpi' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const rng = mulberry32((input.seed ^ hashString(`cpi:${next}`)) >>> 0)
+  if (optionId === 'assinar') {
+    s.approval = clamp(s.approval + 2)
+    if (item.inGovernment) s.partyLoyalty = Math.max(0, s.partyLoyalty - 10)
+  } else if (optionId === 'retirar') {
+    s.capital += 2
+    if (rng() < 0.35) {
+      s.approval = clamp(s.approval - 3)
+      s.log = [...s.log, { year: next, kind: 'info', title: 'Imprensa revela articulação para barrar CPI', text: 'Mensagens mostram você pedindo a colegas que retirassem assinaturas.', good: false }]
+    }
+  }
+  // A oposição consegue as assinaturas com mais facilidade se o jogador assinou.
+  const installed = rng() < (optionId === 'assinar' ? 0.65 : optionId === 'retirar' ? 0.3 : 0.5)
+  s.log = [
+    ...s.log,
+    {
+      year: next,
+      kind: 'info',
+      title: installed ? `CPI instalada: ${item.topic}` : `CPI não alcança as assinaturas: ${item.topic}`,
+      text: installed
+        ? `O pedido reuniu as ${item.needed} assinaturas exigidas (1/3 da ${item.house}). A comissão pode convocar testemunhas e quebrar sigilos, mas não condena: envia as conclusões ao Ministério Público.`
+        : `Faltaram assinaturas para chegar a ${item.needed} (1/3 da ${item.house}). Sem CPI, o tema segue só no noticiário.`,
+    },
+  ]
+  return s
+}
+
+function resolveCpiGov(s: CareerState, item: Extract<TurnItem, { kind: 'cpi-governo' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const rng = mulberry32((input.seed ^ hashString(`cpi-gov:${next}`)) >>> 0)
+  let text = ''
+  if (optionId === 'barrar') {
+    s.capital = Math.max(0, s.capital - 3)
+    s.approval = clamp(s.approval - 2)
+    text = rng() < 0.7 ? 'A base do governo esvaziou a comissão, que terminou sem relatório.' : 'Mesmo com a pressão do governo, a CPI foi instalada e funcionou.'
+  } else if (optionId === 'colaborar') {
+    s.approval = clamp(s.approval + 2)
+    // Documentos entregues ajudam a revelar esquemas que existam.
+    if (s.exposure > 0) s.exposure += 3
+    text = 'O governo entregou documentos e convocados compareceram.'
+  } else {
+    const delta = s.approval >= 45 ? 2 : -3
+    s.approval = clamp(s.approval + delta)
+    text = delta > 0 ? 'O discurso de perseguição mobilizou a base e a CPI perdeu força.' : 'Com a aprovação baixa, o ataque à CPI soou como confissão para parte do eleitorado.'
+  }
+  s.log = [...s.log, { year: next, kind: 'info', title: `CPI investiga o seu governo: ${item.topic}`, text }]
+  return s
+}
+
+function resolveImpeachment(s: CareerState, item: Extract<TurnItem, { kind: 'impeachment' }>, choice: ImpeachmentChoice, input: SimInput): CareerState {
+  const next = s.t + 1
+  const office = s.office as Office
+  const rules = impeachmentRules(office)
+  const leave = (title: string, text: string) => {
+    s.log = [...s.log, { year: next, kind: 'eleicao', title, text, good: false }]
+    s.office = null
+    s.nextElection = null
+    s.candidacy = null
+    s.needsCareerChoice = true
+  }
+  if (choice === 'renunciar') {
+    leave('Você renunciou ao cargo', `Antes do julgamento, você renunciou. Sem condenação, mantém o direito de disputar eleições. ${rules.rule}`)
+    return s
+  }
+  if (choice === 'centrao') {
+    s.capital = Math.max(0, s.capital - 3)
+    if (office === 'presidente') {
+      const side = nationalSide(input, s.setup.uf, next)
+      s.lawEffects = [...s.lawEffects, { fromYear: next, years: 1, effect: { [side === 'A' ? 'fiscalA' : 'fiscalB']: -0.1 } }]
+    }
+  }
+  if (choice === 'rua') s.approval = clamp(s.approval + 2)
+  const rng = mulberry32((input.seed ^ hashString(`impeachment:${next}`)) >>> 0)
+  if (rng() < removalChance(item.support, s.approval, choice)) {
+    s.ineligibleUntil = Math.max(s.ineligibleUntil ?? 0, next + INHABILITATION_YEARS)
+    leave(
+      'Afastado(a) por impeachment',
+      `${rules.rule} Você perde o cargo e fica inabilitado(a) para funções públicas por ${INHABILITATION_YEARS} anos.`,
+    )
+  } else {
+    s.approval = clamp(s.approval + 3)
+    s.log = [
+      ...s.log,
+      {
+        year: next,
+        kind: 'info',
+        title: 'Você sobreviveu ao pedido de impeachment',
+        text: `${rules.rule} Não houve votos suficientes. ${choice === 'centrao' ? 'O apoio custou cargos e emendas.' : ''}`.trim(),
+        good: true,
+      },
+    ]
+  }
+  return s
+}
+
+function resolveImpeachmentVote(s: CareerState, item: Extract<TurnItem, { kind: 'impeachment-voto' }>, optionId: string, input: SimInput): CareerState {
+  const next = s.t + 1
+  const followsParty = (optionId === 'nao') === item.inGovernment
+  if (optionId !== 'abster') {
+    s.partyLoyalty = followsParty ? Math.min(100, s.partyLoyalty + 3) : Math.max(0, s.partyLoyalty - 15)
+    // Com o governo muito impopular, votar pelo afastamento agrada à maioria do eleitorado.
+    s.approval = clamp(s.approval + (optionId === 'sim' ? 2 : -2))
+  }
+  const rng = mulberry32((input.seed ^ hashString(`impeachment-nacional:${next}`)) >>> 0)
+  const removed = rng() < removalChance(item.govApproval < 20 ? 25 : 35, item.govApproval, 'defesa')
+  s.log = [
+    ...s.log,
+    {
+      year: next,
+      kind: 'info',
+      title: removed ? 'Congresso afasta o presidente' : 'Pedido de impeachment do presidente é rejeitado',
+      text: `${impeachmentRules('presidente').rule} Você votou ${optionId === 'sim' ? 'a favor do afastamento' : optionId === 'nao' ? 'contra o afastamento' : 'pela abstenção'}${followsParty || optionId === 'abster' ? '' : ', contra a orientação do seu partido'}.`,
+    },
+  ]
+  return s
 }
 
 function resolveOffer(s: CareerState, item: Extract<TurnItem, { kind: 'oferta' }>, optionId: string): CareerState {
@@ -816,21 +999,36 @@ function resolveBudget(s: CareerState, item: Extract<TurnItem, { kind: 'orcament
   const out = budgetOutcome(opt, item.support, item.lastGrowth, office)
   const k = out.keep
   s.history = [...s.history, { year: next, kind: 'orcamento', id: opt.id }]
+  // Tribunal de contas pode suspender obras com indícios de irregularidade: o retorno atrasa um ano.
+  let delay = 0
+  if (opt.growthLater && mulberry32((input.seed ^ hashString(`auditoria:${next}`)) >>> 0)() < AUDIT_SUSPENSION_CHANCE) {
+    delay = 1
+    s.log = [
+      ...s.log,
+      {
+        year: next,
+        kind: 'info',
+        title: `${auditBody(office)} suspende obras do orçamento`,
+        text: 'Auditoria encontrou indícios de sobrepreço em licitações. As obras param até a correção dos contratos, e o retorno do investimento atrasa um ano.',
+        good: false,
+      },
+    ]
+  }
   if (office === 'presidente') {
     const side = nationalSide(input, s.setup.uf, next)
     const g = side === 'A' ? 'growthA' : 'growthB'
     const f = side === 'A' ? 'fiscalA' : 'fiscalB'
     s.lawEffects = [...s.lawEffects, { fromYear: next, years: 1, effect: { [g]: opt.growthNow * k, [f]: opt.fiscal * k - out.extraEmendas } }]
-    if (opt.growthLater) s.lawEffects = [...s.lawEffects, { fromYear: next + 1, years: opt.laterYears, effect: { [g]: opt.growthLater * k } }]
+    if (opt.growthLater) s.lawEffects = [...s.lawEffects, { fromYear: next + 1 + delay, years: opt.laterYears, effect: { [g]: opt.growthLater * k } }]
   } else {
     // Estados e municípios têm orçamentos livres menores em relação ao PIB local.
     const scale = 0.6
     if (office === 'governador') {
       s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: 1, growth: opt.growthNow * k * scale }]
-      if (opt.growthLater) s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next + 1, years: opt.laterYears, growth: opt.growthLater * k * scale }]
+      if (opt.growthLater) s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next + 1 + delay, years: opt.laterYears, growth: opt.growthLater * k * scale }]
     } else {
       s.muniEffects = [...s.muniEffects, { fromYear: next, years: 1, growth: opt.growthNow * k * scale }]
-      if (opt.growthLater) s.muniEffects = [...s.muniEffects, { fromYear: next + 1, years: opt.laterYears, growth: opt.growthLater * k * scale }]
+      if (opt.growthLater) s.muniEffects = [...s.muniEffects, { fromYear: next + 1 + delay, years: opt.laterYears, growth: opt.growthLater * k * scale }]
     }
   }
   s.approval = clamp(s.approval + opt.approval * k + out.approvalDelta)

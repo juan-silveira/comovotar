@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
 import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
+import { removalChance } from './governance'
 import { ACHIEVEMENTS, officesHeld, unlockedAchievements } from './achievements'
 import { legacyHeadlines } from './legacy'
 import { campaignCeiling, initialWealth, statsFor } from './wealth'
@@ -221,6 +222,41 @@ describe('conquistas e legado', () => {
     expect(h[0]).toContain('8 anos de mandato')
     expect(h.some((t) => t.startsWith('MG termina'))).toBe(true)
     expect(h.some((t) => t.startsWith('Patrimônio pessoal'))).toBe(true)
+  })
+})
+
+describe('CPI, impeachment e controle', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+
+  it('impeachment: ceder cargos reduz a chance de afastamento; renunciar não gera inelegibilidade', () => {
+    expect(removalChance(20, 20, 'centrao')).toBeLessThan(removalChance(20, 20, 'defesa'))
+    expect(removalChance(60, 40, 'defesa')).toBeLessThan(removalChance(20, 15, 'defesa'))
+    const gov = { ...newCareer({ office: 'governador', uf: 'BA', municipio: null, party: 'UDC' }), t: 2, approval: 20 }
+    const quit = resolveItem(gov, { kind: 'impeachment', support: 20 }, 'renunciar', input, results)
+    expect(quit.office).toBeNull()
+    expect(quit.ineligibleUntil).toBeNull()
+    expect(quit.needsCareerChoice).toBe(true)
+  })
+
+  it('afastamento por impeachment inabilita por 8 anos', () => {
+    // Procura uma semente em que o afastamento ocorre com apoio e aprovação mínimos.
+    let removed: CareerState | null = null
+    for (let seed = 1; seed < 40 && !removed; seed++) {
+      const gov = { ...newCareer({ office: 'governador', uf: 'BA', municipio: null, party: 'UDC' }), t: 2, approval: 10 }
+      const out = resolveItem(gov, { kind: 'impeachment', support: 5 }, 'defesa', { ...input, seed }, results)
+      if (out.office === null) removed = out
+    }
+    expect(removed).not.toBeNull()
+    expect(removed!.ineligibleUntil).toBe(3 + 8)
+  })
+
+  it('assinar CPI rende popularidade e, na base do governo, custa fidelidade', () => {
+    const dep = { ...newCareer({ office: 'deputado-federal', uf: 'SP', municipio: null, party: 'UDC' }), t: 1 }
+    const out = resolveItem(dep, { kind: 'cpi', topic: 'x', needed: 171, house: 'Câmara dos Deputados', inGovernment: true }, 'assinar', input, results)
+    expect(out.approval).toBe(dep.approval + 2)
+    expect(out.partyLoyalty).toBe(dep.partyLoyalty - 10)
+    expect(out.log.at(-1)!.title).toMatch(/CPI/)
   })
 })
 

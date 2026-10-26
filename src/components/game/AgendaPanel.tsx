@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { fmtBRL, fmtBRLShort, fmtNum, lowerFirst } from '../../lib/format'
 import { FEASIBILITY_LABELS, promisesFor } from '../../model/promises'
+import { CPI_DEFENSE_OPTIONS, CPI_SIGN_OPTIONS, IMPEACHMENT_OPTIONS, impeachmentRules } from '../../model/governance'
 import { CAMPAIGN_SPEND, convictionChance, ILLICIT_OFFERS, type CampaignSpend } from '../../model/wealth'
 import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
 import { billArguments, billEffectSummary, findBill, type BillTemplate } from '../../model/bills'
@@ -341,6 +342,92 @@ export function AgendaItem({
                   : `Efeito estimado na economia de ${item.territory}: +${fmtNum(g, 3)} p.p. por ano durante ${o.years} ${o.years === 1 ? 'ano' : 'anos'}.`
               })()}${o.capital ? ` +${o.capital} de capital político.` : ''}`,
             }))}
+          />
+        </div>
+      )
+    case 'cpi':
+      return (
+        <div>
+          <Tag>Fiscalização</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Oposição pede CPI sobre {item.topic}</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            Uma Comissão Parlamentar de Inquérito precisa das assinaturas de 1/3 da {item.house} ({item.needed}). Ela pode
+            convocar testemunhas e quebrar sigilos, mas não condena ninguém: envia as conclusões ao Ministério Público.
+            Seu partido é {item.inGovernment ? 'da base do governo, que prefere evitar a CPI' : 'de oposição, que apoia a CPI'}.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art58" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={CPI_SIGN_OPTIONS.filter((o) => !o.govOnly || item.inGovernment).map((o) => ({ id: o.id, label: o.label, pros: o.pros, cons: o.cons }))}
+          />
+        </div>
+      )
+    case 'cpi-governo':
+      return (
+        <div>
+          <Tag>Fiscalização</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">CPI quer investigar o seu governo: {item.topic}</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            A oposição reuniu assinaturas para investigar a sua gestão. Fiscalizar o Executivo é papel do Legislativo; a
+            reação do governo pesa na opinião pública.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art58" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={CPI_DEFENSE_OPTIONS.map((o) => ({ id: o.id, label: o.label, cost: o.cost, pros: o.pros, cons: o.cons }))}
+          />
+        </div>
+      )
+    case 'impeachment': {
+      const rules = impeachmentRules(office ?? 'presidente')
+      return (
+        <div>
+          <Tag>Crise política</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Pedido de impeachment contra você</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            Com aprovação de {Math.round(career.approval)}% e apoio de {Math.round(item.support)}% na {rules.house}, a oposição
+            apresentou denúncia por crime de responsabilidade. {rules.rule} O julgamento é jurídico e político ao mesmo tempo.
+          </p>
+          <p className="mt-2 rounded-lg bg-surface-2 p-2 text-xs text-ink-2">⚖ {rules.law}</p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art85" />
+            <LegalRefChip id="art52" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={IMPEACHMENT_OPTIONS.map((o) => ({ id: o.id, label: o.label, cost: o.cost, pros: o.pros, cons: o.cons }))}
+          />
+        </div>
+      )
+    }
+    case 'impeachment-voto':
+      return (
+        <div>
+          <Tag>Votação histórica</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">Impeachment do presidente: como você vota?</h3>
+          <p className="mt-1 text-sm text-ink-2">
+            O governo tem {Math.round(item.govApproval)}% de aprovação. {impeachmentRules('presidente').rule} Seu partido é{' '}
+            {item.inGovernment ? 'da base do governo e orienta votar NÃO' : 'de oposição e orienta votar SIM'}.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <LegalRefChip id="art85" />
+            <LegalRefChip id="art52" />
+          </div>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={[
+              { id: 'sim', label: 'SIM, pelo afastamento', pros: ['A maioria do eleitorado está insatisfeita com o governo.'], cons: item.inGovernment ? ['Contraria o seu partido.'] : [] },
+              { id: 'nao', label: 'NÃO, contra o afastamento', pros: item.inGovernment ? ['Segue o seu partido.'] : ['Defende que impopularidade não é crime de responsabilidade.'], cons: ['Parte do eleitorado vai cobrar.', ...(item.inGovernment ? [] : ['Contraria o seu partido.'])] },
+              { id: 'abster', label: 'Abster-se', pros: ['Evita se comprometer.'], cons: ['Na Câmara, a abstenção conta, na prática, contra o afastamento, porque são necessários 342 votos SIM.'] },
+            ]}
           />
         </div>
       )

@@ -19,6 +19,10 @@ const HEADER: Record<TurnItem['kind'], { label: string; icon: string }> = {
   oferta: { label: 'Proposta nos bastidores', icon: '🤫' },
   defesa: { label: 'Processo', icon: '⚖' },
   campanha: { label: 'Dinheiro da campanha', icon: '💸' },
+  cpi: { label: 'Pedido de CPI', icon: '🔎' },
+  'cpi-governo': { label: 'CPI contra o governo', icon: '🔎' },
+  impeachment: { label: 'Pedido de impeachment', icon: '⚠️' },
+  'impeachment-voto': { label: 'Impeachment', icon: '🗳' },
 }
 
 /** Carta de evento em pop-up, uma decisão por vez. */
