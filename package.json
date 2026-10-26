@@ -11,7 +11,10 @@
     "test": "vitest run",
     "deploy": "npm run build && firebase deploy",
     "update-ibge": "node scripts/update-ibge.ts",
-    "update-tse": "node scripts/update-tse.ts"
+    "update-tse": "node scripts/update-tse.ts",
+    "verify-ranking": "tsx scripts/verify-ranking.ts",
+    "refresh-data": "tsx scripts/refresh-data.ts",
+    "e2e": "node e2e/smoke.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
@@ -34,9 +37,11 @@
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.1.2",
+    "firebase-admin": "^14.5.0",
     "oxlint": "^1.88.0",
     "playwright-core": "^1.64.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"

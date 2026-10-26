@@ -66,6 +66,14 @@ export function Settings() {
         />
         <Toggle label="Vibração (celular)" hint="Vibra levemente ao decidir e em momentos importantes." checked={s.vibration} onChange={(v) => set({ vibration: v })} />
       </Card>
+      <Card title="Privacidade">
+        <Toggle
+          label="Enviar estatísticas anônimas"
+          hint="Contagens diárias sem identificação (por exemplo, quantas propostas ilícitas foram recusadas) e erros de página, para melhorar o jogo. Os totais são públicos na página “Como as pessoas jogam”."
+          checked={s.analytics}
+          onChange={(v) => set({ analytics: v })}
+        />
+      </Card>
       <p className="text-xs text-muted">As preferências ficam salvas só neste navegador. O tema claro ou escuro muda pelo botão no topo.</p>
     </div>
   )

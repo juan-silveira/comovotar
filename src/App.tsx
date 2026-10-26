@@ -33,6 +33,7 @@ const Ranking = lazy(page(() => import('./pages/Ranking').then((m) => ({ default
 const Report = lazy(page(() => import('./pages/Report').then((m) => ({ default: m.Report }))))
 const Groups = lazy(page(() => import('./pages/Groups').then((m) => ({ default: m.Groups }))))
 const LessonPlans = lazy(page(() => import('./pages/LessonPlans').then((m) => ({ default: m.LessonPlans }))))
+const Metrics = lazy(page(() => import('./pages/Metrics').then((m) => ({ default: m.Metrics }))))
 const Settings = lazy(page(() => import('./pages/Settings').then((m) => ({ default: m.Settings }))))
 const Simulation = lazy(page(() => import('./pages/Simulation').then((m) => ({ default: m.Simulation }))))
 
@@ -60,6 +61,7 @@ export default function App() {
                 <Route path="configuracoes" element={<Settings />} />
                 <Route path="turmas" element={<Groups />} />
                 <Route path="roteiros" element={<LessonPlans />} />
+                <Route path="metricas" element={<Metrics />} />
                 <Route path="configuracao" element={<Navigate to="/laboratorio" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

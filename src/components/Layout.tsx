@@ -36,12 +36,13 @@ const SECTIONS: Section[] = [
     icon: '📚',
     label: 'Aprender',
     to: '/instituicoes',
-    paths: ['/instituicoes', '/economia', '/dados', '/assistente'],
+    paths: ['/instituicoes', '/economia', '/dados', '/assistente', '/metricas'],
     tabs: [
       { to: '/instituicoes', label: 'Poderes e cargos' },
       { to: '/economia', label: 'Dinheiro público' },
       { to: '/assistente', label: 'Assistente de IA' },
       { to: '/dados', label: 'Dados e método' },
+      { to: '/metricas', label: 'Como as pessoas jogam' },
     ],
   },
   {

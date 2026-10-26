@@ -4,9 +4,11 @@ import './index.css'
 import App from './App.tsx'
 import { applyTheme, storedTheme } from './lib/theme'
 import { applySettings } from './lib/settings'
+import { installErrorReporting } from './lib/telemetry'
 
 applyTheme(storedTheme())
 applySettings()
+installErrorReporting()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

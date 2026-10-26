@@ -8,25 +8,14 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Cache público de dados oficiais: IBGE (UFs e municípios, renovável a
-    // cada 30 dias) e Banco Central (indicadores, renovável a cada 12 horas).
-    // Qualquer usuário autenticado pode criar o cache ou renová-lo vencido.
+    // Cache público de dados oficiais (IBGE e Banco Central). Só o robô de
+    // dados (conta de serviço, no GitHub Actions) grava; navegadores só leem
+    // e, se o cache faltar, consultam as APIs oficiais diretamente.
     match /datasets/{id} {
       allow read: if true;
-      allow create: if isValidDataset(id);
-      allow update: if isValidDataset(id)
-        && request.time > resource.data.fetchedAtTs
-           + (id == 'bcb-macro' ? duration.value(12, 'h') : duration.value(30, 'd'));
+      allow write: if false;
     }
 
-    function isValidDataset(id) {
-      let d = request.resource.data;
-      return request.auth != null
-        && id.matches('^(ibge-(uf|municipios-[A-Z]{2})|bcb-macro)$')
-        && d.keys().hasOnly(['data', 'fetchedAtTs'])
-        && d.fetchedAtTs == request.time
-        && d.data is map;
-    }
 
     // Turmas e grupos: qualquer pessoa com o código lê; só o dono altera.
     match /groups/{code} {
@@ -77,6 +66,55 @@ service cloud.firestore {
                                              'deputado-federal', 'senador', 'presidente', 'ministro-stf'])
         && (d.debate == null || (d.debate is string && d.debate.size() <= 40))
         && d.createdAt is timestamp;
+    }
+
+    // Prova da partida (registro de ações), lida só pelo verificador (conta de serviço).
+    match /proofs/{entryId} {
+      allow read: if false;
+      allow write: if request.auth != null
+        && entryId.matches('^.+__.+__' + request.auth.uid + '$')
+        && request.resource.data.keys().hasOnly(['log', 'createdAt'])
+        && request.resource.data.log is string && request.resource.data.log.size() < 900000
+        && request.resource.data.createdAt == request.time;
+    }
+
+    // Métricas anônimas: contadores diários que só podem subir de 1 em 1.
+    match /metrics/{day} {
+      allow read: if true;
+      allow create: if request.auth != null && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().size() == 1
+        && request.resource.data.keys().hasOnly(METRIC_FIELDS())
+        && request.resource.data[request.resource.data.keys()[0]] == 1;
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().size() == 1
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(METRIC_FIELDS())
+        && sameOrPlusOne('game_start') && sameOrPlusOne('game_end') && sameOrPlusOne('quiz_ok')
+        && sameOrPlusOne('quiz_fail') && sameOrPlusOne('offer_accept') && sameOrPlusOne('offer_refuse')
+        && sameOrPlusOne('offer_report') && sameOrPlusOne('merit_vote') && sameOrPlusOne('promise_impossible')
+        && sameOrPlusOne('promise_possible') && sameOrPlusOne('budget_social') && sameOrPlusOne('budget_invest')
+        && sameOrPlusOne('budget_austere') && sameOrPlusOne('budget_balanced') && sameOrPlusOne('custom_bill');
+    }
+
+    function METRIC_FIELDS() {
+      return ['game_start', 'game_end', 'quiz_ok', 'quiz_fail', 'offer_accept', 'offer_refuse', 'offer_report',
+              'merit_vote', 'promise_impossible', 'promise_possible', 'budget_social', 'budget_invest',
+              'budget_austere', 'budget_balanced', 'custom_bill'];
+    }
+
+    function sameOrPlusOne(k) {
+      return request.resource.data.get(k, 0) == resource.data.get(k, 0)
+        || request.resource.data.get(k, 0) == resource.data.get(k, 0) + 1;
+    }
+
+    // Erros de página (sem dados pessoais); só gravação, nunca leitura pública.
+    match /errors/{id} {
+      allow read: if false;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['message', 'page', 'ua', 'at'])
+        && request.resource.data.message is string && request.resource.data.message.size() <= 300
+        && request.resource.data.page is string && request.resource.data.page.size() <= 100
+        && request.resource.data.ua is string && request.resource.data.ua.size() <= 200
+        && request.resource.data.at == request.time;
     }
 
     // Ranking público. Só as iniciais são exibidas; o id do documento é

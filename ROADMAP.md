@@ -148,10 +148,10 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 ## Fase 8 — Plataforma
 
-- [ ] **Ranking à prova de trapaça:** recalcular a pontuação numa Cloud Function a partir das decisões.
-- [ ] **Cache do IBGE** pré-carregado por conta de serviço (escrita só pelo servidor).
-- [ ] **Assistente de IA no servidor** (Genkit e Gemini), com limites e fontes.
-- [ ] **Métricas de aprendizagem** (anônimas), telemetria de erros, testes de interface no celular, CI e implantação automática.
+- [x] **Ranking à prova de trapaça:** cada envio guarda o registro de ações da partida; um verificador diário no GitHub Actions repete a partida com o mesmo motor (determinístico), confere cada decisão e a pontuação, dá o selo ✓ ou remove a entrada. (Sem Cloud Functions, que exigem o plano pago.)
+- [x] **Cache do IBGE e do Banco Central** pré-carregado por um robô agendado com conta de serviço; navegadores só leem (regras do Firestore).
+- [ ] **Assistente de IA no servidor** (Genkit e Gemini): exige Cloud Functions (plano pago do Firebase). Por decisão do projeto, a IA usa a chave do próprio jogador, só no navegador.
+- [x] **Métricas de aprendizagem** anônimas (contadores diários que só sobem de 1 em 1, página pública "Como as pessoas jogam", desligável), registro de erros, teste de interface no celular, CI e deploy automático no GitHub Actions.
 
 ---
 

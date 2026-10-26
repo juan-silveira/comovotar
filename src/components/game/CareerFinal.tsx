@@ -16,7 +16,7 @@ import { useGame } from '../../state/game'
 import { Button, Card, InfoTip } from '../ui'
 
 export function CareerFinal() {
-  const { career, mission, input, results } = useGame()
+  const { career, mission, input, results, state } = useGame()
   const { uid } = useAuth()
   const [initials, setInitials] = useState(savedInitials)
   const [status, setStatus] = useState<'idle' | 'sending' | SubmitResult | 'erro'>('idle')
@@ -47,7 +47,7 @@ export function CareerFinal() {
           separation: mission.separation,
           justice: (soc[0].poverty - soc[soc.length - 1].poverty) * 10,
           green: (1 - soc[soc.length - 1].deforestation / soc[0].deforestation) * 100,
-        }),
+        }, state.log && JSON.stringify(state.log).length < 900_000 ? JSON.stringify(state.log) : undefined),
       )
       // Partidas de turma ou grupo também vão para o placar do grupo.
       if (mission.id.startsWith('grupo-')) {

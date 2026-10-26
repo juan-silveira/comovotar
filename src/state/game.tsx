@@ -1,97 +1,13 @@
-import { difficultyOf } from '../model/difficulty'
-import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
-import type { Office } from '../model/bills'
-import {
-  chooseNextOffice,
-  fillAiDecisions,
-  newCareer,
-  pendingItems,
-  proposeBill,
-  resolveItem,
-  settleYear,
-  type CareerState,
-  type PlayerSetup,
-  type TurnItem,
-} from '../model/career'
-import { findMission, missionInput, type Mission } from '../model/game'
-import type { BillDraft } from '../model/lawmaking'
-import { SEPARATION_PRESETS } from '../model/params'
-import { registerCustomBill } from '../model/bills'
-import { customArguments, toBillTemplate, type CustomBill } from '../model/customBill'
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
+import { track } from '../lib/telemetry'
+import { findPromise } from '../model/promises'
+import { HORIZON } from '../model/simulation'
+import { pendingItems, type CareerState, type TurnItem } from '../model/career'
+import { findMission, type Mission } from '../model/game'
+import type { SimInput, YearResult } from '../model/simulation'
+import { reducer, registerCustom, withResults, type Action, type GameState } from './gameCore'
 
-/** Registra no catálogo uma proposta criada pelo jogador. */
-export function registerCustom(c: CustomBill) {
-  registerCustomBill(toBillTemplate(c), customArguments(c))
-}
-import { HORIZON, simulate, type SimInput, type YearResult } from '../model/simulation'
-
-interface GameState {
-  missionId: string | null
-  career: CareerState | null
-}
-
-type Action =
-  | { type: 'start'; missionId: string; setup: PlayerSetup }
-  | { type: 'resolve'; item: TurnItem; optionId: string }
-  | { type: 'propose'; draft: BillDraft }
-  | { type: 'advance' }
-  | { type: 'career'; office: Office | null }
-  | { type: 'spend'; amount: number }
-  | { type: 'add-custom'; bill: CustomBill }
-  | { type: 'quit' }
-
-export function gameInput(mission: Mission, career: CareerState): SimInput {
-  const base = missionInput(mission, 30, career.decisions)
-  // Separação decidida durante a partida sobrepõe o cenário (que pode ser o Brasil unido).
-  const params = career.separation
-    ? {
-        ...base.params,
-        ...SEPARATION_PRESETS[career.separation.type],
-        separation: career.separation.type,
-        separationYear: career.separation.year,
-      }
-    : base.params
-  // Dificuldade: mais ou menos eventos e crises.
-  const events = difficultyOf(career.setup.difficulty).events
-  return { ...base, params: { ...params, eventProbability: params.eventProbability * events }, lawEffects: career.lawEffects, ufEffects: career.ufEffects }
-}
-
-function withResults(mission: Mission, career: CareerState) {
-  const input = gameInput(mission, career)
-  return { input, results: simulate(input, HORIZON) }
-}
-
-function reducer(s: GameState, a: Action): GameState {
-  if (a.type === 'start') return { missionId: a.missionId, career: newCareer(a.setup) }
-  if (a.type === 'quit') return { missionId: null, career: null }
-  if (a.type === 'add-custom') {
-    if (!s.career) return s
-    registerCustom(a.bill)
-    const others = s.career.customBills.filter((b) => b.id !== a.bill.id)
-    return { ...s, career: { ...s.career, customBills: [...others, a.bill] } }
-  }
-  if (a.type === 'spend')
-    return s.career ? { ...s, career: { ...s.career, capital: Math.max(0, s.career.capital - a.amount) } } : s
-  const mission = s.missionId ? findMission(s.missionId) : undefined
-  if (!mission || !s.career) return s
-  const { input, results } = withResults(mission, s.career)
-  switch (a.type) {
-    case 'resolve':
-      return { ...s, career: resolveItem(s.career, a.item, a.optionId, input, results) }
-    case 'propose':
-      return { ...s, career: proposeBill(s.career, a.draft, input, results) }
-    case 'career':
-      return { ...s, career: chooseNextOffice(s.career, a.office) }
-    case 'advance': {
-      if (s.career.t >= HORIZON) return s
-      if (pendingItems(s.career, input, results).length > 0) return s
-      const filled = fillAiDecisions(s.career, input)
-      const moved: CareerState = { ...filled, t: filled.t + 1 }
-      const after = withResults(mission, moved)
-      return { ...s, career: settleYear(moved, after.input, after.results) }
-    }
-  }
-}
+export { gameInput, registerCustom } from './gameCore'
 
 const KEY = 'sdr.game'
 
@@ -144,8 +60,39 @@ interface GameContextValue {
 
 const GameContext = createContext<GameContextValue | null>(null)
 
+/** Métricas anônimas a partir das ações do jogador. */
+function trackAction(a: Action) {
+  if (a.type === 'start') track('game_start')
+  if (a.type === 'add-custom') track('custom_bill')
+  if (a.type !== 'resolve') return
+  const it = a.item
+  if (it.kind === 'quiz') track(a.optionId === it.quiz.correct ? 'quiz_ok' : 'quiz_fail')
+  if (it.kind === 'oferta') track(a.optionId === 'aceitar' ? 'offer_accept' : a.optionId === 'denunciar' ? 'offer_report' : 'offer_refuse')
+  if (it.kind === 'orcamento')
+    track(a.optionId === 'social' ? 'budget_social' : a.optionId === 'investimento' ? 'budget_invest' : a.optionId === 'austero' ? 'budget_austere' : 'budget_balanced')
+  if (it.kind === 'promessa' && a.optionId !== 'nenhuma')
+    track(findPromise(a.optionId)?.feasibility === 'impossivel' ? 'promise_impossible' : 'promise_possible')
+}
+
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, load)
+  const [state, rawDispatch] = useReducer(reducer, undefined, load)
+  const dispatch = useCallback((a: Action) => {
+    trackAction(a)
+    rawDispatch(a)
+  }, [])
+  // Votos pelo mérito e fim de partida são percebidos pelo estado.
+  const meritVotes = state.career?.history.filter((h) => h.kind === 'voto' && h.id === 'merito').length ?? 0
+  const prevMerit = useRef(meritVotes)
+  useEffect(() => {
+    if (meritVotes > prevMerit.current) track('merit_vote')
+    prevMerit.current = meritVotes
+  }, [meritVotes])
+  const ended = (state.career?.t ?? 0) >= HORIZON
+  const prevEnded = useRef(ended)
+  useEffect(() => {
+    if (ended && !prevEnded.current) track('game_end')
+    prevEnded.current = ended
+  }, [ended])
   useEffect(() => {
     try {
       localStorage.setItem(KEY, JSON.stringify(state))

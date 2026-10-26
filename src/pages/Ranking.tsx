@@ -51,7 +51,7 @@ export function Ranking() {
         <h1 className="text-2xl font-bold text-ink">Ranking</h1>
         <p className="mt-1 text-sm text-ink-2">
           {firebaseEnabled
-            ? 'Ranking online por cenário e cargo. Só as iniciais são exibidas.'
+            ? 'Ranking online por cenário e cargo. Só as iniciais são exibidas. ✓ indica pontuação confirmada: um verificador repete a partida a partir das jogadas e remove resultados que não batem.'
             : 'Modo local: o ranking mostra apenas as partidas deste navegador.'}
         </p>
       </div>
@@ -144,6 +144,11 @@ export function Ranking() {
                     <td className="py-1.5 text-ink-2">{i + 1}</td>
                     <td className="py-1.5 font-bold tracking-widest text-ink">
                       {r.initials}
+                      {r.verified && (
+                        <span className="ml-1 text-xs text-good" title="Partida repetida e pontuação confirmada pelo verificador">
+                          ✓
+                        </span>
+                      )}
                       {r.mine && <span className="ml-2 text-xs font-normal tracking-normal text-muted">(você)</span>}
                     </td>
                     <td className="py-1.5 text-ink-2">{r.uf}</td>

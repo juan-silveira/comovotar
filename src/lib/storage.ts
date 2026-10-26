@@ -171,6 +171,8 @@ export interface LeaderboardEntry {
   green?: number
   /** Temporada (trimestre) em que a pontuação foi feita, ex.: 2026-T4 */
   season?: string
+  /** true: o verificador repetiu a partida e confirmou a pontuação */
+  verified?: boolean
   /** Verdadeiro se for a entrada do próprio jogador */
   mine?: boolean
 }
@@ -207,6 +209,8 @@ function entryId(missionId: string, office: Office, uid: string) {
 export async function submitScore(
   uid: string,
   entry: Omit<LeaderboardEntry, 'createdAt' | 'mine' | 'modelVersion' | 'season'>,
+  /** Registro de ações da partida (JSON), para verificação */
+  proof?: string,
 ): Promise<SubmitResult> {
   if (!INITIALS_RE.test(entry.initials)) throw new Error('Iniciais inválidas: use 2 ou 3 letras.')
   const id = entryId(entry.missionId, entry.office, uid)
@@ -232,6 +236,8 @@ export async function submitScore(
     const ref = doc(db, 'leaderboard', id)
     const existing = await getDoc(ref)
     if (existing.exists() && (existing.data().score as number) >= clean.score) return 'sem-melhora'
+    // A prova (registro de ações) vai antes: o verificador repete a partida e confere a pontuação.
+    if (proof) await setDoc(doc(db, 'proofs', id), { log: proof, createdAt: serverTimestamp() })
     await setDoc(ref, { ...clean, createdAt: serverTimestamp() })
     return 'novo-recorde'
   }
@@ -272,6 +278,7 @@ export async function topScores(
         createdAt: toDate(data.createdAt),
         justice: data.justice,
         green: data.green,
+        verified: data.verified,
         season: data.season,
         mine: uid !== null && data.uid === uid,
       }

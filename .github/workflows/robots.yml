@@ -1,0 +1,32 @@
+name: Robôs agendados
+
+# Verifica o ranking e atualiza os dados do Banco Central todo dia; o IBGE, toda segunda-feira.
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      ibge:
+        description: 'Atualizar também os dados do IBGE'
+        type: boolean
+        default: false
+
+jobs:
+  robos:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Verificar o ranking
+        run: npm run verify-ranking
+      - name: Banco Central
+        run: npm run refresh-data -- bcb
+      - name: IBGE (segundas-feiras ou sob demanda)
+        run: |
+          if [ "$(date -u +%u)" = "1" ] || [ "${{ github.event.inputs.ibge }}" = "true" ]; then npm run refresh-data -- ibge; else echo "Não é segunda-feira."; fi

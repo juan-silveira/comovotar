@@ -10,6 +10,8 @@ export interface Settings {
   contrast: 'normal' | 'alto'
   reduceMotion: boolean
   easyReading: boolean
+  /** Enviar contagens anônimas de uso e erros */
+  analytics: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -19,6 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
   contrast: 'normal',
   reduceMotion: false,
   easyReading: false,
+  analytics: true,
 }
 
 const KEY = 'sdr.settings'
