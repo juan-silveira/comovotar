@@ -3,7 +3,9 @@
 // pressões (opções com prós, contras e efeitos). Nos casos do STF, depois de
 // votar, o jogador vê o que o tribunal decidiu de verdade.
 
+import { fmtNum } from '../lib/format'
 import type { Office } from './bills'
+import { FINANCE } from './finance'
 import type { PressureEvent, PressureOption } from './pressure'
 
 /** Opções padrão de um julgamento no STF. */
@@ -462,6 +464,164 @@ export const LEGISLATIVE_EVENTS: PressureEvent[] = [
   },
 ]
 
+/** Pauta própria do presidente. */
+export const PRESIDENT_EVENTS: PressureEvent[] = [
+  {
+    id: 'pres-salario-minimo',
+    offices: ['presidente'],
+    icon: '💵',
+    group: 'Salário mínimo',
+    title: 'Quanto vai ser o salário mínimo do ano que vem?',
+    text: 'A regra em vigor corrige o mínimo pela inflação e dá ganho real ligado ao crescimento do PIB, limitado a 2,5% pelo arcabouço fiscal. Cada R$ 1 a mais custa cerca de R$ 413 milhões por ano, porque aposentadorias e benefícios acompanham o mínimo.',
+    options: [
+      { id: 'regra', label: 'Seguir a regra: inflação mais ganho real limitado', pros: ['Previsível e cabe no arcabouço.'], cons: ['Centrais sindicais querem mais.'], fiscal: -0.05, approval: 1 },
+      { id: 'inflacao', label: 'Só repor a inflação', pros: ['Alivia as contas da Previdência.'], cons: ['Trabalhadores e aposentados perdem poder de compra relativo (−3).'], approval: -3 },
+      { id: 'aumento', label: 'Dar um aumento bem acima da regra', pros: ['Popular entre quem ganha o mínimo (+4).'], cons: ['Custo bilionário nas contas e pressão sobre prefeituras e pequenas empresas.'], fiscal: -0.25, approval: 4, growth: 0.03 },
+    ],
+  },
+  {
+    id: 'pres-combustiveis',
+    offices: ['presidente'],
+    icon: '⛽',
+    group: 'Petrobras e combustíveis',
+    title: 'Petróleo dispara no mundo e a gasolina vai subir',
+    text: 'A Petrobras é de capital misto: o governo é o maior acionista, mas há acionistas privados. Segurar preços agrada o consumidor e prejudica o caixa da empresa.',
+    options: [
+      { id: 'mercado', label: 'Deixar a Petrobras seguir o mercado', pros: ['Preserva a empresa e a confiança dos investidores.'], cons: ['Combustível mais caro alimenta a inflação (−3).'], approval: -3, growth: 0.01 },
+      { id: 'segurar', label: 'Pressionar a Petrobras a segurar os preços', pros: ['Alívio imediato no bolso (+3).'], cons: ['Ações da empresa caem e cresce a desconfiança sobre interferência política.'], approval: 3, growth: -0.03 },
+      { id: 'impostos', label: 'Zerar temporariamente os impostos federais sobre combustíveis', pros: ['Reduz o preço sem mexer na Petrobras (+2).'], cons: ['Perda de arrecadação de dezenas de bilhões.'], approval: 2, fiscal: -0.15 },
+    ],
+  },
+  {
+    id: 'pres-reforma-ministerial',
+    offices: ['presidente'],
+    icon: '🪑',
+    group: 'Governabilidade',
+    title: 'Partidos do centro pedem ministérios em troca de apoio',
+    text: 'Sem maioria no Congresso, o governo tem dificuldade para aprovar projetos. Partidos oferecem votos em troca de ministérios hoje ocupados por técnicos.',
+    options: [
+      { id: 'ceder', label: 'Trocar ministros técnicos por indicados dos partidos', pros: ['Forma maioria no Congresso (+3 de capital).'], cons: ['Gestão pode piorar; críticas por “toma lá, dá cá” (−2).'], capital: 3, approval: -2, growth: -0.02 },
+      { id: 'manter', label: 'Manter a equipe técnica', pros: ['Gestão mais qualificada (+1).'], cons: ['Projetos do governo travam no Congresso (−2 de capital).'], capital: -2, approval: 1, growth: 0.02 },
+    ],
+  },
+  {
+    id: 'pres-mp',
+    offices: ['presidente'],
+    icon: '📜',
+    group: 'Medida provisória',
+    title: 'Editar uma medida provisória ou enviar um projeto de lei?',
+    text: 'Uma MP vale imediatamente, mas o Congresso precisa aprová-la em até 120 dias, ou ela perde a validade. A Constituição exige relevância e urgência (art. 62).',
+    options: [
+      { id: 'mp', label: 'Editar a medida provisória', pros: ['Efeito imediato.'], cons: ['O Congresso reclama de excesso de MPs e pode deixá-la caducar.'], success: 0.6, growth: 0.02, failApproval: -1, okText: 'O Congresso aprovou a MP dentro do prazo.', failText: 'A MP caducou sem ser votada e perdeu a validade.' },
+      { id: 'projeto', label: 'Enviar projeto de lei com pedido de urgência', pros: ['Respeita o Congresso (+1 de capital).'], cons: ['Mais lento.'], capital: 1, growth: 0.01 },
+    ],
+  },
+  {
+    id: 'pres-indicacao-stf',
+    offices: ['presidente'],
+    icon: '⚖️',
+    group: 'Indicação ao STF',
+    title: 'Um ministro do STF se aposenta: quem indicar?',
+    text: 'O presidente indica, e o Senado aprova por maioria absoluta após sabatina (art. 101). O escolhido pode ficar no tribunal por décadas.',
+    options: [
+      { id: 'jurista', label: 'Um jurista respeitado e sem ligação partidária', pros: ['Aprovação tranquila no Senado e mais segurança jurídica (+1).'], cons: ['Pode votar contra o governo.'], approval: 1, growth: 0.01 },
+      { id: 'aliado', label: 'Um aliado de confiança', pros: ['Um voto previsível no tribunal (+1 de capital).'], cons: ['Críticas de aparelhamento; o Senado pode rejeitar.'], success: 0.75, capital: 1, approval: -1, failApproval: -3, okText: 'O Senado aprovou o indicado.', failText: 'O Senado rejeitou o indicado, algo raríssimo na história.' },
+    ],
+  },
+  {
+    id: 'pres-caminhoneiros',
+    offices: ['presidente'],
+    icon: '🚚',
+    group: 'Greve',
+    title: 'Caminhoneiros bloqueiam rodovias contra o preço do diesel',
+    text: 'Postos ficam sem combustível e supermercados sem produtos. Na greve de 2018, o país parou por mais de uma semana.',
+    options: [
+      { id: 'ceder', label: 'Baixar o diesel com subsídio e tabela de frete', pros: ['Encerra a greve rapidamente (+2).'], cons: ['Custo bilionário e precedente para novas greves.'], approval: 2, fiscal: -0.1 },
+      { id: 'negociar', label: 'Negociar parte das demandas e exigir a liberação das estradas', pros: ['Equilíbrio entre custo e solução.'], cons: ['A crise dura mais alguns dias (−1).'], approval: -1, fiscal: -0.03, growth: -0.03 },
+      { id: 'forca', label: 'Desbloquear as estradas com forças federais', pros: ['Mostra autoridade.'], cons: ['Risco de confronto e de a greve se espalhar.'], success: 0.5, approval: 0, failApproval: -4, growth: -0.02, okText: 'As estradas foram liberadas sem confrontos graves.', failText: 'Houve confrontos e a paralisação se espalhou por mais estados.' },
+    ],
+    okNote: 'Na vida real, em 2018 o governo cedeu: reduziu o diesel com subsídio e criou a tabela mínima de frete.',
+  },
+  {
+    id: 'pres-enchente',
+    offices: ['presidente'],
+    icon: '🌊',
+    group: 'Calamidade',
+    title: 'Enchentes históricas devastam um estado inteiro',
+    text: 'Cidades submersas, centenas de milhares de desalojados, indústrias e lavouras destruídas. O governador pede socorro federal.',
+    options: [
+      { id: 'pacote', label: 'Pacote bilionário de reconstrução e auxílio às famílias', pros: ['Acelera a recuperação do estado (+3).'], cons: ['Custo alto, fora das regras fiscais habituais.'], approval: 3, fiscal: -0.25, growth: 0.05 },
+      { id: 'divida', label: 'Suspender a dívida do estado com a União e liberar crédito', pros: ['Ajuda sem gasto direto tão alto.'], cons: ['O alívio demora a chegar às famílias.'], approval: 1, fiscal: -0.05, growth: 0.02 },
+      { id: 'minimo', label: 'Só a ajuda emergencial mínima', pros: ['Preserva o orçamento.'], cons: ['Críticas duras de abandono (−5).'], approval: -5 },
+    ],
+    okNote: 'Na vida real, nas enchentes do Rio Grande do Sul em 2024, a União liberou bilhões em ajuda e suspendeu por três anos o pagamento da dívida do estado.',
+  },
+  {
+    id: 'pres-bolsa-familia',
+    offices: ['presidente'],
+    icon: '👨‍👩‍👧',
+    group: 'Programas sociais',
+    title: 'Reajustar o Bolsa Família?',
+    text: `O benefício médio é de cerca de R$ ${FINANCE.bolsaMedio.value} e não tem correção automática pela inflação. Hoje são cerca de ${fmtNum(FINANCE.bolsaFamilias.value / 1e6, 1)} milhões de famílias.`,
+    options: [
+      { id: 'inflacao', label: 'Corrigir pela inflação', pros: ['Mantém o poder de compra das famílias (+1).'], cons: ['Custo extra de alguns bilhões por ano.'], approval: 1, fiscal: -0.04 },
+      { id: 'ampliar', label: 'Ampliar o valor e o número de famílias', pros: ['Reduz a pobreza mais rápido (+3).'], cons: ['Custo alto; críticos pedem porta de saída.'], approval: 3, fiscal: -0.15, growth: 0.02 },
+      { id: 'pente-fino', label: 'Manter o valor e fazer revisão de cadastros', pros: ['Corrige pagamentos indevidos e economiza.'], cons: ['Famílias que precisam podem ser cortadas por erro (−1).'], approval: -1, fiscal: 0.03 },
+    ],
+  },
+  {
+    id: 'pres-margem-equatorial',
+    offices: ['presidente'],
+    icon: '🛢️',
+    group: 'Energia e meio ambiente',
+    title: 'Explorar petróleo na foz do Amazonas?',
+    text: 'A Petrobras quer perfurar na margem equatorial, perto da foz do rio Amazonas. O Ibama aponta riscos ambientais; governos locais esperam empregos e royalties.',
+    options: [
+      { id: 'liberar', label: 'Apoiar a exploração com exigências ambientais', pros: ['Novas reservas, royalties e empregos no Norte.'], cons: ['Críticas internacionais e de ambientalistas (−1).'], growth: 0.04, approval: -1 },
+      { id: 'barrar', label: 'Não explorar e priorizar a transição energética', pros: ['Coerência com metas climáticas (+1).'], cons: ['Estados do Norte perdem receitas potenciais.'], approval: 1 },
+    ],
+    okNote: 'Na vida real, depois de anos de impasse, o Ibama autorizou em 2025 a Petrobras a perfurar um poço de pesquisa na região.',
+  },
+  {
+    id: 'pres-blusinhas',
+    offices: ['presidente'],
+    icon: '📦',
+    group: 'Comércio',
+    title: 'Taxar compras internacionais pequenas?',
+    text: 'Compras de até US$ 50 em sites estrangeiros não pagavam imposto de importação. Varejistas e indústria nacional reclamam de concorrência desleal.',
+    options: [
+      { id: 'taxar', label: 'Cobrar imposto sobre essas compras', pros: ['Iguala a concorrência com o comércio nacional e aumenta a arrecadação.'], cons: ['Consumidores reclamam do preço mais alto (−2).'], approval: -2, fiscal: 0.03, growth: 0.01 },
+      { id: 'isentar', label: 'Manter a isenção', pros: ['Produtos mais baratos para o consumidor (+1).'], cons: ['Lojas e fábricas nacionais perdem vendas.'], approval: 1, growth: -0.01 },
+    ],
+    okNote: 'Na vida real, em 2024 o Congresso aprovou imposto de 20% sobre compras internacionais de até US$ 50, a chamada “taxa das blusinhas”.',
+  },
+  {
+    id: 'pres-habitacao',
+    offices: ['presidente'],
+    icon: '🏘️',
+    group: 'Moradia',
+    title: 'Ampliar o programa habitacional?',
+    text: 'O déficit de moradias passa de 6 milhões. O Minha Casa, Minha Vida financia e subsidia imóveis para famílias de baixa renda.',
+    options: [
+      { id: 'ampliar', label: 'Ampliar as metas e o subsídio', pros: ['Gera empregos na construção e moradia digna (+2).'], cons: ['Custo fiscal e risco de casas longe do emprego.'], approval: 2, fiscal: -0.08, growth: 0.04 },
+      { id: 'manter', label: 'Manter o ritmo atual', pros: ['Sem custo extra.'], cons: ['O déficit continua (−1).'], approval: -1 },
+    ],
+  },
+  {
+    id: 'pres-veto',
+    offices: ['presidente'],
+    icon: '✍️',
+    group: 'Sanção ou veto',
+    title: 'Congresso aprova projeto que você não queria',
+    text: 'O texto aprovado amplia benefícios fiscais para um setor com forte bancada. Você tem 15 dias úteis para sancionar ou vetar (art. 66); um veto pode ser derrubado pela maioria absoluta do Congresso.',
+    options: [
+      { id: 'sancionar', label: 'Sancionar para preservar a relação com o Congresso', pros: ['+2 de capital político.'], cons: ['Perda de arrecadação.'], capital: 2, fiscal: -0.05 },
+      { id: 'vetar', label: 'Vetar', pros: ['Protege as contas.'], cons: ['O Congresso pode derrubar o veto e impor uma derrota pública.'], success: 0.5, approval: 1, failApproval: -2, okText: 'O veto foi mantido.', failText: 'O Congresso derrubou o veto numa sessão conjunta.', fiscal: 0 },
+      { id: 'parcial', label: 'Vetar só os trechos mais caros', pros: ['Meio-termo.'], cons: ['Os dois lados ficam parcialmente insatisfeitos.'], fiscal: -0.02, capital: 1 },
+    ],
+  },
+]
+
 export const STF_EVENTS = [...STF_LANDMARKS, ...STF_ROUTINE]
 
 /**
@@ -480,8 +640,8 @@ export function drawLocalEvents(office: Office, rng: () => number, seen: { id: s
     const routine = shuffle(STF_ROUTINE.filter((e) => !seen.some((s) => s.id === e.id && t - s.year < 2))).slice(0, landmark ? 3 : 4)
     return [...(landmark ? [landmark] : []), ...routine]
   }
-  const count = office === 'prefeito' ? 3 : office === 'vereador' ? 2 : office === 'governador' ? 1 : 0
-  const pool = [...LOCAL_EVENTS, ...LEGISLATIVE_EVENTS].filter((e) => e.offices.includes(office) && !seen.some((s) => s.id === e.id && t - s.year < 2))
+  const count = office === 'prefeito' ? 3 : office === 'vereador' ? 2 : office === 'governador' ? 1 : office === 'presidente' ? 2 : 0
+  const pool = [...LOCAL_EVENTS, ...LEGISLATIVE_EVENTS, ...PRESIDENT_EVENTS].filter((e) => e.offices.includes(office) && !seen.some((s) => s.id === e.id && t - s.year < 2))
   const legislative = office === 'deputado-federal' || office === 'deputado-estadual' || office === 'senador' ? 1 : 0
   return shuffle(pool).slice(0, count + legislative)
 }

@@ -3,7 +3,7 @@
 // simples; magnitudes são hipóteses didáticas.
 
 import type { Office } from './bills'
-import { LEGISLATIVE_EVENTS, LOCAL_EVENTS, STF_EVENTS } from './localEvents'
+import { LEGISLATIVE_EVENTS, LOCAL_EVENTS, PRESIDENT_EVENTS, STF_EVENTS } from './localEvents'
 
 export interface PressureOption {
   id: string
@@ -38,6 +38,8 @@ export interface PressureEvent {
   weakGovernmentOnly?: boolean
   /** Não é sorteado: só aparece quando uma condição do jogo o dispara */
   triggeredOnly?: boolean
+  /** O que aconteceu de verdade num caso parecido (mostrado depois da escolha) */
+  okNote?: string
 }
 
 const EXEC: Office[] = ['presidente', 'governador', 'prefeito']
@@ -794,7 +796,8 @@ export function findPressure(id: string): PressureEvent | undefined {
     FOREIGN_EVENTS.find((e) => e.id === id) ??
     STF_EVENTS.find((e) => e.id === id) ??
     LOCAL_EVENTS.find((e) => e.id === id) ??
-    LEGISLATIVE_EVENTS.find((e) => e.id === id)
+    LEGISLATIVE_EVENTS.find((e) => e.id === id) ??
+    PRESIDENT_EVENTS.find((e) => e.id === id)
   )
 }
 

@@ -925,7 +925,7 @@ function resolvePressure(s: CareerState, item: Extract<TurnItem, { kind: 'pressa
   }
   s.history = [...s.history, { year: next, kind: 'pressao', id: `${ev.id}:${opt.id}` }]
   const outcome = opt.success === undefined ? (opt.okText ?? '') : ok ? opt.okText : opt.failText
-  s.log = [...s.log, { year: next, kind: 'info', title: `${ev.group}: ${lowerFirst(opt.label)}`, text: [ev.title, outcome].filter(Boolean).join('. '), good: ok && (opt.approval ?? 0) >= 0 }]
+  s.log = [...s.log, { year: next, kind: 'info', title: `${ev.group}: ${lowerFirst(opt.label)}`, text: [ev.title, outcome, ev.okNote].filter(Boolean).join('. '), good: ok && (opt.approval ?? 0) >= 0 }]
   return s
 }
 

@@ -376,6 +376,19 @@ describe('pautas do STF e locais', () => {
   })
 })
 
+describe('pauta do presidente', () => {
+  it('segurar o preço dos combustíveis agrada e pesa no crescimento; o caso real aparece no registro', () => {
+    const input = missionInput(mission, 30, [])
+    const results = simulate(input)
+    const pres = { ...newCareer({ office: 'presidente', uf: 'SP', municipio: null, party: 'UDC' }), t: 2 }
+    const out = resolveItem(pres, { kind: 'pressao', eventId: 'pres-combustiveis' }, 'segurar', input, results)
+    expect(out.approval).toBe(pres.approval + 3)
+    expect(out.lawEffects.at(-1)!.effect.growthA).toBeCloseTo(-0.03)
+    const flood = resolveItem(pres, { kind: 'pressao', eventId: 'pres-enchente' }, 'divida', input, results)
+    expect(flood.log.at(-1)!.text).toMatch(/Rio Grande do Sul em 2024/)
+  })
+})
+
 describe('dificuldade', () => {
   it('altera capital inicial e bônus eleitoral', () => {
     const easy = newCareer({ office: 'prefeito', uf: 'CE', municipio: null, party: 'UDC', difficulty: 'facil' })
