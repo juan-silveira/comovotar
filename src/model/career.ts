@@ -1331,6 +1331,9 @@ export function proposeBill(state: CareerState, draft: BillDraft, input: SimInpu
   return registerBill(s, { year: next, authorIsPlayer: true, level, state: bill, ctx }, input)
 }
 
+/** Áreas em que a lei depende de obras, contratações ou regulamentação para ter efeito. */
+const SLOW_AREAS = new Set(['Educação', 'Saneamento', 'Transporte', 'Urbanismo', 'Meio ambiente', 'Segurança pública', 'Clima'])
+
 /** Guarda o projeto; se virou lei, aplica os efeitos. */
 function registerBill(state: CareerState, rec: BillRecord, input: SimInput): CareerState {
   if (rec.state.pending) return { ...state, activeBill: rec }
@@ -1338,7 +1341,9 @@ function registerBill(state: CareerState, rec: BillRecord, input: SimInput): Car
   const tpl = getTemplate(rec.state)
   const side = nationalSide(input, state.setup.uf, rec.year)
   if (rec.state.status === 'lei') {
-    const from = rec.year + 1
+    // Execução lenta: leis que dependem de obras, contratações ou regulamentação demoram mais a ter efeito.
+    const lag = SLOW_AREAS.has(tpl.area) ? 1 : 0
+    const from = rec.year + 1 + lag
     if (rec.level === 'federal') {
       const eff = lawToEffect(rec.state, side)
       if (eff) s.lawEffects = [...s.lawEffects, { fromYear: from, effect: eff }]
@@ -1364,7 +1369,11 @@ function registerBill(state: CareerState, rec: BillRecord, input: SimInput): Car
         year: rec.year,
         kind: 'lei',
         title: `${rec.authorIsPlayer ? 'Sua proposta virou lei' : 'Nova lei'}: ${tpl.title}`,
-        text: rec.state.jabuti ? `Aprovada com um jabuti: ${rec.state.jabuti.text}.` : 'Promulgada; os efeitos começam no ano seguinte.',
+        text: `${rec.state.jabuti ? `Aprovada com um jabuti: ${rec.state.jabuti.text}. ` : 'Promulgada. '}${
+          lag
+            ? `Precisa de regulamentação, licitação e obras: os efeitos só começam em ${2023 + from}.`
+            : 'Os efeitos começam no ano seguinte.'
+        }`,
         good: true,
       },
     ]

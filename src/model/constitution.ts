@@ -309,6 +309,13 @@ export const CONSTITUTION: Record<string, LegalRef> = {
     summary:
       'Candidatos podem usar recursos próprios até 10% do teto de gastos do cargo (autofinanciamento). Gastar dinheiro não declarado à Justiça Eleitoral (caixa dois) é crime e pode levar à cassação por abuso de poder econômico. O TSE fixa o teto de gastos de cada cargo; em 2026 manteve os valores de 2022.',
   },
+  'art142': {
+    id: 'art142',
+    ref: 'CF, art. 142; LC 97/1999',
+    title: 'Forças Armadas',
+    summary:
+      'Marinha, Exército e Aeronáutica defendem a pátria e garantem os poderes constitucionais e, por iniciativa de qualquer deles, a lei e a ordem. Estão sob a autoridade suprema do presidente. Não são um “poder moderador”: o STF decidiu em 2024 que o artigo não autoriza intervenção militar sobre os outros Poderes. O emprego na garantia da lei e da ordem (GLO) é excepcional e temporário.',
+  },
   'adct88': {
     id: 'adct88',
     ref: 'ADCT, art. 88 e LC 157/2016',

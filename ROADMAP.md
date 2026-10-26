@@ -75,11 +75,11 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 - [x] **Pautas-bomba:** com o governo fraco, o Legislativo aprova gasto sem fonte (vetar, sancionar ou questionar no tribunal). O Centrão aparece no impeachment. Preço dos votos negociados sobe 50% com aprovação abaixo de 40% e dobra abaixo de 30%.
 - [x] **CPIs:** parlamentares decidem se assinam (1/3 da casa) ou ajudam o governo a barrar; governantes reagem a CPIs contra a sua gestão (barrar, colaborar ou contra-atacar), que podem revelar esquemas.
 - [x] **Controle (primeira parte):** TCU e TCEs podem suspender obras do orçamento de investimento, atrasando o retorno. Falta: licitações demoram, a Lei de Responsabilidade Fiscal limita gastos com pessoal e há risco de crime de responsabilidade e impeachment.
-- [ ] **Judicialização:** toda medida controversa pode ir ao STF; liminares; tempo de julgamento.
+- [x] **Judicialização:** a oposição leva medidas do governo ao tribunal; liminar de um relator pode suspender por tempo indeterminado (defender, negociar ou atacar o tribunal). Projetos de lei já passam por controle de constitucionalidade.
 - [x] **Grupos de interesse (primeira versão):** greves de servidores, agro, indústria, centrais sindicais, ambientalistas, lideranças religiosas e bancos trazem demandas com prós e contras. Ideias originais: servidores, agro, indústria, bancos, sindicatos, igrejas e movimentos sociais têm pautas, greves, lobby e financiamento de campanha.
 - [x] **Notícias falsas:** vídeo manipulado sobre o jogador (desmentir, ir à Justiça, ignorar ou contra-atacar com boatos). Ideias originais: narrativas, *fake news*, checagem, crises de imagem; a mídia amplia ou abafa conforme o tema.
 - [x] **Federalismo (primeira versão):** repasses voluntários atrasados (marcha a Brasília, alinhar-se, aumentar impostos locais) e guerra fiscal do ICMS (isenção sem CONFAZ, que o STF costuma derrubar). Ideias originais: prefeitos e governadores dependem de transferências e emendas; conflito de competências; guerra fiscal.
-- [ ] **Execução lenta:** uma lei aprovada não vira resultado no ano seguinte (regulamentação, licitação, obra, fiscalização).
+- [x] **Execução lenta:** leis de educação, saneamento, transporte, urbanismo, meio ambiente, clima e segurança só têm efeito um ano depois (regulamentação, licitação e obras), com aviso no registro.
 - [x] **Escândalos e investigações:** reportagem, inquérito, denúncia, julgamento, delação e Ficha Limpa (ver patrimônio).
 - [x] **Impeachment:** jogável dos dois lados: o governante impopular escolhe ceder cargos ao Centrão, mobilizar apoiadores, confiar na defesa ou renunciar; deputados e senadores votam o afastamento do presidente. Regras de presidente (Lei 1.079/1950), governador e prefeito (DL 201/1967).
 
@@ -98,7 +98,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - eleições e mudanças de governo em grandes parceiros.
 - [x] **Câmbio, inflação e juros no modelo (didático):** dólar reage a risco fiscal, crises globais e diferença de inflação; inflação ancorada na meta, com repasse do câmbio; Selic reage à inflação; inflação acima do teto custa aprovação. Falta a balança comercial. Ideia original: o dólar afeta inflação, dívida externa, exportadores e importadores.
 - [x] **Política externa (primeira versão):** votação na ONU sobre invasão (condenar, abster-se, mediar), refugiados na fronteira, OCDE × BRICS, Fundo Amazônia e comércio em moedas locais. Ideias originais: neutralidade × alinhamentos (EUA, China, UE, BRICS, OCDE), acordos (Mercosul–UE), ajuda humanitária, sanções. Cada escolha tem ganhos e custos.
-- [ ] **Forças Armadas e soberania:** fronteiras, Amazônia, missões de paz. O papel constitucional das Forças Armadas e o que elas não podem fazer.
+- [x] **Forças Armadas e soberania:** pedido de GLO, garimpo ilegal em terra indígena, missão de paz da ONU; quadro "podem e não podem" na página de instituições (art. 142, decisão do STF de 2024).
 
 ## Fase 4 — Jogo (objetivos, conquistas, ranking)
 

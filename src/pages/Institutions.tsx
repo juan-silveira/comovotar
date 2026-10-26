@@ -167,6 +167,33 @@ export function Institutions() {
         ))}
       </div>
 
+      <Card title="Forças Armadas: o que podem e o que não podem" subtitle="Instituições de Estado, não de governo">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <h3 className="mb-1 text-sm font-semibold text-good">Podem</h3>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-ink-2">
+              <li>Defender o país contra ameaças externas e proteger fronteiras, inclusive na Amazônia.</li>
+              <li>Atuar na garantia da lei e da ordem (GLO), por ordem do presidente, de forma excepcional, temporária e em área delimitada.</li>
+              <li>Apoiar a Defesa Civil em desastres, como enchentes e secas.</li>
+              <li>Participar de missões de paz da ONU, com autorização do Congresso.</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="mb-1 text-sm font-semibold text-bad">Não podem</h3>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-ink-2">
+              <li>Agir como “poder moderador” entre os Poderes: o STF decidiu em 2024 que o art. 142 não autoriza intervenção militar.</li>
+              <li>Substituir as polícias de forma permanente: segurança pública é responsabilidade dos estados.</li>
+              <li>Ter atuação político-partidária: militares da ativa não podem se filiar a partidos.</li>
+              <li>Agir sem comando civil: estão sob a autoridade suprema do presidente da República.</li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1">
+          <LegalRefChip id="art142" />
+          <LegalRefChip id="art49" />
+        </div>
+      </Card>
+
       <Card title="O caminho de uma lei federal">
         <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {LAW_PATH.map((s, i) => (
