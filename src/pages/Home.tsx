@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { BookOpen, Coins, FlaskConical, Settings, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
+import { BookOpen, Coins, FlaskConical, Settings, Users, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BrazilMap } from '../components/BrazilMap'
@@ -59,6 +59,7 @@ export function Home() {
     ...(career ? [{ icon: Plus, title: 'Nova partida', text: 'Comece outra carreira do zero', to: '/jogar' }] : []),
     { icon: CalendarDays, title: 'Desafio do dia', text: 'Mesmo sorteio para todos os jogadores hoje', to: `/jogar?missao=${daily.id}` },
     { icon: Trophy, title: 'Ranking', text: 'As melhores carreiras (só iniciais)', to: '/ranking' },
+    { icon: Users, title: 'Turmas e grupos', text: 'Cenário próprio, placar e debate com um código', to: '/turmas' },
   ]
   const right: Item[] = [
     { icon: BookOpen, title: 'Como funciona o Brasil', text: 'Poderes, cargos, Constituição e glossário', to: '/instituicoes' },

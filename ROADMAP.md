@@ -63,7 +63,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 - [x] **Tramitação normal:** comissões, votação partido a partido com voto estratégico, casa revisora, sanção ou veto, ADI. Os efeitos entram na simulação.
 - [x] **Conversar sobre a proposta:** perguntar à IA por que um partido resiste, como negociar, o que mudar no texto para ganhar votos ou evitar inconstitucionalidade.
 - [x] **Modo sem IA:** formulário guiado (área, custo, beneficiados, orientação, prós e contras) que gera a mesma estrutura.
-- [ ] **Temas e cenários criados pelo jogador:** crises e pautas personalizadas; compartilhar com amigos ou turmas (com moderação).
+- [x] **Cenários criados pelo jogador:** editor de cenários (país, crises, cargo, metas e pauta em debate) compartilhado por código com amigos ou turmas; leis próprias já podem ser criadas com ou sem IA.
 
 ## Fase 2 — "Nem tudo é o que parece" (dificuldades reais de governar)
 
@@ -141,10 +141,10 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 ## Fase 7 — Escola e comunidade
 
-- [ ] **Modo professor:** turmas, cenários prontos, relatórios de aprendizagem, roteiros de aula (BNCC).
-- [ ] **Multiplayer assíncrono:** cada jogador assume um cargo no mesmo país (presidente, líderes, STF) e negocia de verdade.
-- [ ] **Debates:** dois jogadores defendem lados de uma pauta e a turma vota.
-- [ ] **Editor de cenários e pautas** (com revisão), para criar crises e propostas.
+- [x] **Modo professor:** turmas com código, cenário e cargo definidos pelo professor, placar da turma (pontos, pobreza, desmatamento, leis, medalhas) e cinco roteiros de aula ligados à BNCC.
+- [x] **Multiplayer assíncrono (primeira versão):** grupos jogam o mesmo país com o mesmo sorteio e comparam resultados e escolhas. Falta: cargos diferentes no mesmo país negociando entre si em tempo real.
+- [x] **Debates:** a turma vota numa pauta escolhida pelo professor (um voto por pessoa, que pode ser trocado), com resultado ao vivo; roteiro de debate regrado.
+- [x] **Editor de cenários:** compartilhado só por código (sem lista pública, por isso sem necessidade de moderação).
 
 ## Fase 8 — Plataforma
 

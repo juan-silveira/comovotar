@@ -7,7 +7,7 @@ import { fmtNum, fmtPop, lowerFirst } from '../lib/format'
 import { useThemeColors } from '../lib/theme'
 import type { Office } from '../model/bills'
 import { DIFFICULTIES, type Difficulty } from '../model/difficulty'
-import { allMissions } from '../model/game'
+import { allMissions, findMission } from '../model/game'
 import { CAPITALS, type Municipio } from '../model/ibge'
 import {
   assemblySeats,
@@ -31,8 +31,11 @@ export function NewGame() {
   const navigate = useNavigate()
   const { dispatch, career } = useGame()
   const c = useThemeColors()
-  const missions = allMissions()
   const [query] = useSearchParams()
+  // Cenário de turma ou grupo (registrado ao abrir o código) entra na lista.
+  const groupMission = query.get('missao')?.startsWith('grupo-') ? findMission(query.get('missao') as string) : undefined
+  const missions = groupMission ? [groupMission, ...allMissions()] : allMissions()
+  const lockOffice = !!groupMission && query.get('travar') === '1'
   const [missionId, setMissionId] = useState(() => missions.find((m) => m.id === query.get('missao'))?.id ?? missions[0].id)
   const [office, setOffice] = useState<Office>(() => {
     const q = query.get('cargo') as Office | null
@@ -162,6 +165,7 @@ export function NewGame() {
               type="button"
               role="radio"
               aria-checked={office === o}
+              disabled={lockOffice && o !== office}
               onClick={() => setOffice(o)}
               className={`rounded-lg border p-3 text-left ${office === o ? 'border-accent bg-surface-2' : 'border-line hover:bg-surface-2'}`}
             >

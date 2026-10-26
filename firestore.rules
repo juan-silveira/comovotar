@@ -28,6 +28,57 @@ service cloud.firestore {
         && d.data is map;
     }
 
+    // Turmas e grupos: qualquer pessoa com o código lê; só o dono altera.
+    match /groups/{code} {
+      allow read: if true;
+      allow create: if isValidGroup(code) && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isValidGroup(code) && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+
+      // Placar do grupo: cada jogador grava só a própria linha.
+      match /results/{uid} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['initials', 'office', 'uf', 'score', 'justice', 'green',
+                                                    'laws', 'objectives', 'achievements', 'createdAt'])
+          && request.resource.data.initials is string && request.resource.data.initials.matches('^[A-Z]{2,3}$')
+          && request.resource.data.uf is string && request.resource.data.uf.matches('^[A-Z]{2}$')
+          && request.resource.data.score is int && request.resource.data.score >= 0 && request.resource.data.score <= 5000
+          && request.resource.data.justice is int && request.resource.data.justice >= 0 && request.resource.data.justice <= 500
+          && request.resource.data.green is int && request.resource.data.green >= 0 && request.resource.data.green <= 100
+          && request.resource.data.laws is int && request.resource.data.laws >= 0 && request.resource.data.laws <= 100
+          && request.resource.data.objectives is int && request.resource.data.objectives >= 0 && request.resource.data.objectives <= 4
+          && request.resource.data.achievements is int && request.resource.data.achievements >= 0 && request.resource.data.achievements <= 50
+          && request.resource.data.createdAt == request.time;
+      }
+
+      // Votação do debate: um voto por pessoa, que pode ser trocado.
+      match /votes/{uid} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['side', 'createdAt'])
+          && request.resource.data.side in ['a', 'b']
+          && request.resource.data.createdAt == request.time;
+      }
+    }
+
+    function isValidGroup(code) {
+      let d = request.resource.data;
+      return request.auth != null
+        && code.matches('^[A-HJ-NP-Z2-9]{6}$')
+        && d.keys().hasOnly(['ownerUid', 'name', 'kind', 'spec', 'office', 'debate', 'createdAt'])
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 60
+        && d.kind in ['turma', 'grupo']
+        && d.spec is map && d.spec.title is string && d.spec.title.size() <= 80
+        && d.spec.summary is string && d.spec.summary.size() <= 400
+        && d.spec.objectives is list && d.spec.objectives.size() <= 3
+        && (d.office == null || d.office in ['vereador', 'prefeito', 'deputado-estadual', 'governador',
+                                             'deputado-federal', 'senador', 'presidente', 'ministro-stf'])
+        && (d.debate == null || (d.debate is string && d.debate.size() <= 40))
+        && d.createdAt is timestamp;
+    }
+
     // Ranking público. Só as iniciais são exibidas; o id do documento é
     // "{missionId}__{cargo}__{uid}", uma entrada por jogador, cenário e cargo.
     match /leaderboard/{entryId} {

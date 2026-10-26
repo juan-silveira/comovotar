@@ -5,6 +5,8 @@ import { fmtNum, lowerFirst } from '../../lib/format'
 import { unlockedAchievements } from '../../model/achievements'
 import { legacyHeadlines } from '../../model/legacy'
 import { socialSeries } from '../../model/social'
+import { submitGroupResult } from '../../lib/groups'
+import { careerObjectives } from '../../model/objectives'
 import { ObjectivesPanel } from './ObjectivesPanel'
 import { difficultyOf } from '../../model/difficulty'
 import { INITIALS_RE, normalizeInitials, rememberInitials, savedInitials, submitScore, type SubmitResult } from '../../lib/storage'
@@ -26,7 +28,7 @@ export function CareerFinal() {
   const valid = INITIALS_RE.test(initials)
 
   async function submit() {
-    if (!uid || !valid || !mission || !career) return
+    if (!uid || !valid || !mission || !career || !input) return
     setStatus('sending')
     try {
       rememberInitials(initials)
@@ -47,6 +49,21 @@ export function CareerFinal() {
           green: (1 - soc[soc.length - 1].deforestation / soc[0].deforestation) * 100,
         }),
       )
+      // Partidas de turma ou grupo também vão para o placar do grupo.
+      if (mission.id.startsWith('grupo-')) {
+        await submitGroupResult(mission.id.slice('grupo-'.length), {
+          uid,
+          initials,
+          office,
+          uf: career.setup.uf,
+          score: Math.max(0, Math.min(5000, Math.round(s.total))),
+          justice: Math.max(0, Math.min(500, Math.round((soc[0].poverty - soc[soc.length - 1].poverty) * 10))),
+          green: Math.max(0, Math.min(100, Math.round((1 - soc[soc.length - 1].deforestation / soc[0].deforestation) * 100))),
+          laws: Math.min(100, career.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').length),
+          objectives: careerObjectives(career, input, results).filter((o) => o.status === 'ok').length,
+          achievements: medals.length,
+        })
+      }
     } catch (e) {
       setError((e as Error).message)
       setStatus('erro')

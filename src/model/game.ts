@@ -213,10 +213,81 @@ export function allMissions(date: Date = new Date()): Mission[] {
   return [...MISSIONS, dailyMission(date), weeklyMission(date)]
 }
 
+// Cenários personalizados (turmas, grupos e editor) ----------------------------------------
+
+/** Meta serializável, para guardar cenários personalizados no Firestore. */
+export type ObjectiveSpec =
+  | { type: 'pc'; block: BlockId | 'ambos'; gap: number }
+  | { type: 'debt'; limit: number }
+  | { type: 'approval'; min: number }
+  | { type: 'recovery'; t: number }
+  | { type: 'balance'; gap: number }
+
+export interface MissionSpec {
+  title: string
+  summary: string
+  separation: SeparationType
+  separationYear: number | null
+  seed: number
+  eventProbability: number
+  objectives: ObjectiveSpec[]
+}
+
+export function buildObjective(o: ObjectiveSpec): Objective {
+  switch (o.type) {
+    case 'pc':
+      return perCapitaFloor(o.block, o.gap)
+    case 'debt':
+      return debtCap(o.limit)
+    case 'approval':
+      return approvalFloor(o.min)
+    case 'recovery':
+      return recoveryBy(o.t)
+    case 'balance':
+      return balance(o.gap)
+  }
+}
+
+export function missionFromSpec(id: string, spec: MissionSpec): Mission {
+  return {
+    id,
+    title: spec.title,
+    summary: spec.summary,
+    separation: spec.separation,
+    separationYear: spec.separationYear,
+    seed: spec.seed >>> 0,
+    eventProbability: Math.max(0, Math.min(40, spec.eventProbability)),
+    objectives: spec.objectives.slice(0, 3).map(buildObjective),
+  }
+}
+
+const CUSTOM_KEY = 'sdr.custom-missions'
+const custom = new Map<string, MissionSpec>(
+  (() => {
+    try {
+      return Object.entries(JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? '{}') as Record<string, MissionSpec>)
+    } catch {
+      return []
+    }
+  })(),
+)
+
+/** Guarda um cenário personalizado para que partidas em andamento o encontrem depois. */
+export function registerMission(id: string, spec: MissionSpec) {
+  custom.set(id, spec)
+  try {
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(Object.fromEntries(custom)))
+  } catch {
+    // ignorado
+  }
+}
+
 /** Encontra a missão pelo id, inclusive desafios de dias e semanas anteriores (partidas em andamento). */
 export function findMission(id: string, date: Date = new Date()): Mission | undefined {
   const fixed = allMissions(date).find((m) => m.id === id)
   if (fixed) return fixed
+  const spec = custom.get(id)
+  if (spec) return missionFromSpec(id, spec)
   const week = id.match(/^semanal-(\d{4}-W\d{2})$/)
   if (week) return weeklyMissionFor(week[1])
   const day = id.match(/^diaria-(\d{4}-\d{2}-\d{2})$/)
