@@ -164,7 +164,10 @@ function hashString(s: string): number {
 }
 
 export function weeklyMission(date: Date = new Date()): Mission {
-  const week = isoWeek(date)
+  return weeklyMissionFor(isoWeek(date))
+}
+
+function weeklyMissionFor(week: string): Mission {
   const seed = hashString(week)
   const types: SeparationType[] = ['amigavel', 'intermediaria', 'conflituosa']
   const separation = types[seed % 3]
@@ -183,12 +186,42 @@ export function weeklyMission(date: Date = new Date()): Mission {
   }
 }
 
-export function allMissions(date: Date = new Date()): Mission[] {
-  return [...MISSIONS, weeklyMission(date)]
+/** Data local no formato aaaa-mm-dd. */
+export function isoDay(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+/** Desafio do dia: Brasil unido, com crises e eventos sorteados pela data (iguais para todos). */
+export function dailyMission(date: Date = new Date()): Mission {
+  return dailyMissionFor(isoDay(date))
+}
+
+function dailyMissionFor(day: string): Mission {
+  const [y, m, d] = day.split('-')
+  const base = MISSIONS[0]
+  return {
+    ...base,
+    id: `diaria-${day}`,
+    title: `Desafio do dia ${d}/${m}/${y}`,
+    summary: 'O Brasil como ele é, com crises, eventos e eleições sorteados para hoje, iguais para todos os jogadores.',
+    seed: hashString(`diaria-${day}`),
+    eventProbability: 22,
+  }
+}
+
+export function allMissions(date: Date = new Date()): Mission[] {
+  return [...MISSIONS, dailyMission(date), weeklyMission(date)]
+}
+
+/** Encontra a missão pelo id, inclusive desafios de dias e semanas anteriores (partidas em andamento). */
 export function findMission(id: string, date: Date = new Date()): Mission | undefined {
-  return allMissions(date).find((m) => m.id === id)
+  const fixed = allMissions(date).find((m) => m.id === id)
+  if (fixed) return fixed
+  const week = id.match(/^semanal-(\d{4}-W\d{2})$/)
+  if (week) return weeklyMissionFor(week[1])
+  const day = id.match(/^diaria-(\d{4}-\d{2}-\d{2})$/)
+  if (day) return dailyMissionFor(day[1])
+  return undefined
 }
 
 /**

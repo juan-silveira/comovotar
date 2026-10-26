@@ -7,7 +7,7 @@ import { useAuth } from '../lib/auth'
 import { firebaseEnabled } from '../lib/firebase'
 import { applyTheme, storedTheme, type ThemeChoice } from '../lib/theme'
 import { DEFAULT_BASELINE } from '../model/baseline'
-import { weeklyMission } from '../model/game'
+import { dailyMission } from '../model/game'
 import { ORIGINAL_PARTITION } from '../model/partition'
 import { OFFICE_ICONS, ROLES } from '../model/roles'
 import type { UF } from '../model/states'
@@ -42,7 +42,7 @@ export function Home() {
   const { career, results } = useGame()
   const { user, isAnonymous, signInWithGoogle, signOut } = useAuth()
   const [theme, setTheme] = useState<ThemeChoice>(storedTheme)
-  const weekly = weeklyMission()
+  const daily = dailyMission()
 
   const left: Item[] = [
     career
@@ -57,7 +57,7 @@ export function Home() {
         }
       : { icon: Plus, title: 'Nova partida', text: 'Escolha cargo, estado, partido e cenário', to: '/jogar', highlight: true },
     ...(career ? [{ icon: Plus, title: 'Nova partida', text: 'Comece outra carreira do zero', to: '/jogar' }] : []),
-    { icon: CalendarDays, title: 'Desafio da semana', text: 'Mesmo sorteio para todos os jogadores', to: `/jogar?missao=${weekly.id}` },
+    { icon: CalendarDays, title: 'Desafio do dia', text: 'Mesmo sorteio para todos os jogadores hoje', to: `/jogar?missao=${daily.id}` },
     { icon: Trophy, title: 'Ranking', text: 'As melhores carreiras (só iniciais)', to: '/ranking' },
   ]
   const right: Item[] = [

@@ -12,7 +12,7 @@ import {
 } from './partition'
 import { electionType } from './politics'
 import { drawEvents } from './events'
-import { MISSIONS, missionInput, score, weeklyMission, isoWeek } from './game'
+import { MISSIONS, missionInput, score, weeklyMission, isoWeek, dailyMission, findMission } from './game'
 import { DEFAULT_COEFFICIENTS, defaultParams, type Coefficients, type Params } from './params'
 import { computeYear, HORIZON, setup, simulate, sumComponents, type SimInput } from './simulation'
 
@@ -430,5 +430,18 @@ describe('Brasil unido e separação durante o jogo', () => {
     expect(r[5].A.components.transition).toBeCloseTo(-8, 9)
     expect(r[4].A.debt).toBeCloseTo(r[4].B.debt, 9)
     expect(r[6].A.debt).not.toBeCloseTo(r[6].B.debt, 3)
+  })
+})
+
+describe('desafios diário e semanal', () => {
+  it('são iguais para todos no mesmo dia e continuam encontráveis depois', () => {
+    const d = new Date(2026, 9, 26)
+    expect(dailyMission(d).id).toBe('diaria-2026-10-26')
+    expect(dailyMission(d).seed).toBe(dailyMission(new Date(2026, 9, 26, 23)).seed)
+    expect(dailyMission(d).separationYear).toBeNull()
+    const later = new Date(2026, 11, 1)
+    expect(findMission('diaria-2026-10-26', later)?.seed).toBe(dailyMission(d).seed)
+    expect(findMission(weeklyMission(d).id, later)?.seed).toBe(weeklyMission(d).seed)
+    expect(findMission('inexistente', later)).toBeUndefined()
   })
 })
