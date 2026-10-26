@@ -28,6 +28,7 @@ const SECTIONS: Section[] = [
       { to: '/roteiros', label: 'Roteiros de aula' },
     ],
   },
+  { id: 'historia', icon: '📜', label: 'Modo história', to: '/historia', paths: ['/historia'] },
   { id: 'config', icon: '⚙️', label: 'Configurações', to: '/configuracoes', paths: ['/configuracoes'] },
   { id: 'jogar', icon: '🎮', label: 'Jogar', to: '/jogo', paths: ['/jogo', '/jogar'] },
   { id: 'ranking', icon: '🏆', label: 'Ranking', to: '/ranking', paths: ['/ranking'] },

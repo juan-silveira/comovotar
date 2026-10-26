@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { BookOpen, Coins, FlaskConical, Settings, Users, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
+import { BookOpen, Coins, FlaskConical, ScrollText, Settings, Users, LogIn, LogOut, Moon, Play, Plus, Sparkles, Sun, SunMoon, Trophy, CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BrazilMap } from '../components/BrazilMap'
@@ -57,6 +57,7 @@ export function Home() {
         }
       : { icon: Plus, title: 'Nova partida', text: 'Escolha cargo, estado, partido e cenário', to: '/jogar', highlight: true },
     ...(career ? [{ icon: Plus, title: 'Nova partida', text: 'Comece outra carreira do zero', to: '/jogar' }] : []),
+    { icon: ScrollText, title: 'Modo história', text: 'Decisões reais do Brasil desde 1990', to: '/historia' },
     { icon: CalendarDays, title: 'Desafio do dia', text: 'Mesmo sorteio para todos os jogadores hoje', to: `/jogar?missao=${daily.id}` },
     { icon: Trophy, title: 'Ranking', text: 'As melhores carreiras (só iniciais)', to: '/ranking' },
     { icon: Users, title: 'Turmas e grupos', text: 'Cenário próprio, placar e debate com um código', to: '/turmas' },
