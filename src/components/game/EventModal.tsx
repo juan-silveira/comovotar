@@ -15,6 +15,7 @@ const HEADER: Record<TurnItem['kind'], { label: string; icon: string }> = {
   separatismo: { label: 'Crise federativa', icon: '🧭' },
   orcamento: { label: 'Orçamento do ano', icon: '💰' },
   emendas: { label: 'Suas emendas', icon: '🧾' },
+  promessa: { label: 'Campanha', icon: '📣' },
 }
 
 /** Carta de evento em pop-up, uma decisão por vez. */

@@ -109,6 +109,8 @@ function load(): GameState {
           termLimited: c.termLimited ?? [],
           partyLoyalty: c.partyLoyalty ?? 70,
           customBills: c.customBills ?? [],
+          promises: c.promises ?? [],
+          history: c.history ?? [],
         }
         for (const cb of g.career.customBills) registerCustom(cb)
       }

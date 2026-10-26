@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_BASELINE } from './baseline'
-import { canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
+import { campaignBonus, canRunFor, chooseNextOffice, fillAiDecisions, firstElection, newCareer, pendingItems, resolveItem, settleYear, type CareerState } from './career'
 import { budgetOutcome, emendaValue, findBudgetOption } from './budget'
 import { drawClimate } from './climate'
 import { congressPassProbability, institutionsYear, INITIAL_INSTITUTIONS, senateApproval, DEFAULT_INSTITUTIONS_COEFFICIENTS } from './institutions'
@@ -100,6 +100,50 @@ describe('orçamento e emendas', () => {
     const after = resolveItem(deputy, item!, 'governo', input, results)
     expect(after.capital).toBe(deputy.capital + 3)
     expect(after.ufEffects.at(-1)!.growth).toBeGreaterThan(0)
+  })
+})
+
+describe('promessas de campanha', () => {
+  const input = missionInput(mission, 30, [])
+  const results = simulate(input)
+
+  it('no início do jogo o jogador escolhe a promessa do mandato atual', () => {
+    const gov = newCareer({ office: 'governador', uf: 'MG', municipio: null, party: 'PMF' })
+    const item = pendingItems(gov, input, results).find((i) => i.kind === 'promessa')
+    expect(item).toMatchObject({ office: 'governador', initial: true })
+    const after = resolveItem(gov, item!, 'obras', input, results)
+    expect(after.promises[0]).toMatchObject({ id: 'obras', status: 'pendente', dueYear: gov.nextElection })
+  })
+
+  it('promessa cumprida rende aprovação; impossível derruba mais e conta votos na campanha', () => {
+    const base = newCareer({ office: 'governador', uf: 'MG', municipio: null, party: 'PMF' })
+    const due = base.nextElection!
+    const kept = settleYear(
+      {
+        ...base,
+        t: due,
+        approval: 50,
+        promises: [{ id: 'obras', office: 'governador', year: 0, dueYear: due, status: 'pendente' }],
+        history: [
+          { year: 1, kind: 'orcamento', id: 'investimento' },
+          { year: 2, kind: 'orcamento', id: 'investimento' },
+        ],
+      },
+      input,
+      results,
+    )
+    expect(kept.promises[0].status).toBe('cumprida')
+    expect(kept.log.some((l) => l.title.startsWith('Promessa cumprida'))).toBe(true)
+
+    const broken = settleYear(
+      { ...base, t: due, approval: 50, promises: [{ id: 'servidores-2x', office: 'governador', year: 0, dueYear: due, status: 'pendente' }] },
+      input,
+      results,
+    )
+    expect(broken.promises[0].status).toBe('quebrada')
+
+    const campaign = { ...base, promises: [{ id: 'servidores-2x', office: 'governador' as const, year: 7, dueYear: 11, status: 'campanha' as const }] }
+    expect(campaignBonus(campaign, 7)).toBe(8)
   })
 })
 

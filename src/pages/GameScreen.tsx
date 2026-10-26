@@ -11,6 +11,7 @@ import { GameMap } from '../components/game/GameMap'
 import { HowToPlay, howToSeen } from '../components/game/HowToPlay'
 import { IndicatorList } from '../components/game/IndicatorList'
 import { buildIndicators, type Indicator } from '../components/game/indicators'
+import { findPromise, type PromiseRecord } from '../model/promises'
 import { NewsFeed } from '../components/game/NewsFeed'
 import { ComponentsTable, WhyPanel } from '../components/panels'
 import { Button, Card, Term } from '../components/ui'
@@ -170,6 +171,29 @@ export function GameScreen() {
           )}
           <Mini label="Leis aprovadas" value={String(career.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').length)} />
         </div>
+        {career.promises.length > 0 && (
+          <div className="rounded-xl border border-line bg-surface p-3">
+            <h3 className="text-sm font-semibold text-ink">📣 Suas promessas</h3>
+            <ul className="mt-2 space-y-2">
+              {[...career.promises].reverse().map((p) => {
+                const def = findPromise(p.id)
+                const badge = PROMISE_STATUS[p.status]
+                return (
+                  <li key={`${p.id}-${p.year}`} className="flex items-start justify-between gap-2 text-xs">
+                    <div>
+                      <div className="font-semibold text-ink">{def?.label ?? p.id}</div>
+                      <div className="text-ink-2">
+                        {ROLES[p.office].title} · cobrança em {2023 + p.dueYear}
+                        {p.status === 'pendente' && def && def.feasibility !== 'impossivel' ? ` · ${def.how}` : ''}
+                      </div>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 font-semibold ${badge.cls}`}>{badge.label}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
         {role && (
           <details className="rounded-xl border border-line bg-surface p-3 text-xs text-ink-2">
             <summary className="cursor-pointer text-sm font-semibold text-ink">O que você pode e não pode fazer</summary>
@@ -464,6 +488,14 @@ function ChartsPanel() {
       </div>
     </div>
   )
+}
+
+const PROMISE_STATUS: Record<PromiseRecord['status'], { label: string; cls: string }> = {
+  campanha: { label: 'Em campanha', cls: 'bg-surface-2 text-ink-2' },
+  pendente: { label: 'Pendente', cls: 'bg-surface-2 text-ink' },
+  cumprida: { label: '✓ Cumprida', cls: 'bg-good/15 text-good' },
+  quebrada: { label: '✗ Descumprida', cls: 'bg-bad/15 text-bad' },
+  'sem-mandato': { label: 'Sem mandato', cls: 'bg-surface-2 text-muted' },
 }
 
 function TabButton({ children, active, onClick, badge }: { children: ReactNode; active: boolean; onClick: () => void; badge?: number }) {

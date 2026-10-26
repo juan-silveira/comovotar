@@ -5,6 +5,7 @@
 
 import { fmtBRL, lowerFirst } from '../lib/format'
 import { BILLS, findBill, type Level, type Office } from './bills'
+import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
 import { cardSidesAt, cardYear, findCard, DECISION_CARDS, findOption, type DecisionCard, type DecisionChoice, type Side } from './decisions'
@@ -90,6 +91,8 @@ export type TurnItem =
   | { kind: 'orcamento'; support: number; lastGrowth: number }
   /** Destino das emendas individuais (Legislativo) */
   | { kind: 'emendas'; value: number; territoryGdp: number; territory: string }
+  /** Promessa de campanha (initial = mandato que já começou com o jogo) */
+  | { kind: 'promessa'; office: Office; initial: boolean }
 
 /** Orientação do partido do jogador numa votação, com o motivo. */
 export interface PartyStance {
@@ -165,6 +168,10 @@ export interface CareerState {
   partyLoyalty: number
   /** Propostas criadas pelo jogador (com IA ou formulário) */
   customBills: CustomBill[]
+  /** Promessas de campanha e a cobrança de cada uma */
+  promises: PromiseRecord[]
+  /** Escolhas de orçamento e emendas, para avaliar promessas */
+  history: ChoiceRecord[]
 }
 
 export const START_CAPITAL = 8
@@ -233,6 +240,8 @@ export function newCareer(setup: PlayerSetup): CareerState {
     termLimited: [],
     partyLoyalty: 70,
     customBills: [],
+    promises: [],
+    history: [],
   }
 }
 
@@ -402,6 +411,8 @@ export function itemKey(item: TurnItem, t: number): string {
       return `orcamento:${t}`
     case 'emendas':
       return `emendas:${t}`
+    case 'promessa':
+      return `promessa:${t}`
   }
 }
 
@@ -486,6 +497,10 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
     }
   }
 
+  // Campanha: promessa para a eleição deste ano (ou para o mandato que começa com o jogo).
+  const campaign = campaignOffice(state, next)
+  if (campaign) items.push({ kind: 'promessa', office: campaign, initial: state.t === 0 && state.office === campaign && state.nextElection !== next })
+
   for (const quiz of QUIZZES.filter((q) => q.year === next)) items.push({ kind: 'quiz', quiz })
 
   // Crises climáticas do ano que passou no território do jogador.
@@ -544,6 +559,19 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
   }
 
   return items.filter((it) => !state.resolved.includes(itemKey(it, next)))
+}
+
+/** Cargo em disputa no ano `next`, se o jogador estiver em campanha. */
+function campaignOffice(state: CareerState, next: number): Office | null {
+  if (state.t === 0 && state.promises.length === 0 && state.office && ROLES[state.office].termYears && state.nextElection !== next)
+    return state.office
+  if (state.nextElection !== next) return null
+  if (state.office) {
+    if (!ROLES[state.office].termYears) return null
+    if (isExecutive(state.office) && state.consecutiveTerms >= 2) return null
+    return state.office
+  }
+  return state.candidacy && state.candidacy !== 'ministro-stf' ? state.candidacy : null
 }
 
 function aiAuthorOffice(level: Level, templateId: string): Office {
@@ -659,6 +687,14 @@ export function resolveItem(
       return resolveBudget(s, item, optionId, input)
     case 'emendas':
       return resolveEmendas(s, item, optionId, input)
+    case 'promessa': {
+      if (optionId === 'nenhuma') return s
+      const term = ROLES[item.office].termYears ?? 4
+      const year = item.initial ? 0 : next
+      const due = item.initial ? (state.nextElection ?? term) : next + term
+      s.promises = [...s.promises, { id: optionId, office: item.office, year, dueYear: due, status: item.initial ? 'pendente' : 'campanha' }]
+      return s
+    }
   }
 }
 
@@ -669,6 +705,7 @@ function resolveBudget(s: CareerState, item: Extract<TurnItem, { kind: 'orcament
   const opt = findBudgetOption(optionId)
   const out = budgetOutcome(opt, item.support, item.lastGrowth, office)
   const k = out.keep
+  s.history = [...s.history, { year: next, kind: 'orcamento', id: opt.id }]
   if (office === 'presidente') {
     const side = nationalSide(input, s.setup.uf, next)
     const g = side === 'A' ? 'growthA' : 'growthB'
@@ -694,6 +731,7 @@ function resolveBudget(s: CareerState, item: Extract<TurnItem, { kind: 'orcament
 function resolveEmendas(s: CareerState, item: Extract<TurnItem, { kind: 'emendas' }>, optionId: string, input: SimInput): CareerState {
   const next = s.t + 1
   const opt = findEmendaOption(optionId)
+  s.history = [...s.history, { year: next, kind: 'emendas', id: opt.id }]
   const growth = emendaGrowth(opt, item.value, item.territoryGdp)
   if (s.office === 'vereador') s.muniEffects = [...s.muniEffects, { fromYear: next, years: opt.years, growth }]
   else s.ufEffects = [...s.ufEffects, { uf: s.setup.uf, fromYear: next, years: opt.years, growth }]
@@ -1037,6 +1075,53 @@ export function municipalSeries(state: CareerState, results: YearResult[]) {
 
 /** Atualiza aprovação, capital e eleições depois de simular o ano state.t. */
 export function settleYear(state: CareerState, input: SimInput, results: YearResult[]): CareerState {
+  const s = settleOffice(state, input, results)
+  // Promessas feitas nesta eleição só valem se o jogador assumiu o cargo prometido.
+  // Quem saiu do cargo antes da cobrança não é avaliado pela promessa.
+  if (s.promises.some((p) => p.status === 'pendente' && p.dueYear <= s.t && s.office !== p.office))
+    s.promises = s.promises.map((p) => (p.status === 'pendente' && p.dueYear <= s.t && s.office !== p.office ? { ...p, status: 'sem-mandato' } : p))
+  if (s.promises.some((p) => p.status === 'campanha' && p.year === s.t))
+    s.promises = s.promises.map((p) =>
+      p.status === 'campanha' && p.year === s.t ? { ...p, status: s.office === p.office ? 'pendente' : 'sem-mandato' } : p,
+    )
+  return s
+}
+
+/** O eleitor cobra as promessas cujo mandato termina neste ano, antes de votar. */
+function chargePromises(s: CareerState) {
+  const t = s.t
+  const due = s.promises.filter((p) => p.status === 'pendente' && p.dueYear === t)
+  if (due.length === 0) return
+  const ownLaws = s.bills.filter((b) => b.authorIsPlayer && b.state.status === 'lei').map((b) => b.year)
+  s.promises = s.promises.map((p) => {
+    if (!due.includes(p)) return p
+    const def = findPromise(p.id)
+    if (!def) return p
+    const kept = def.fulfilled({ history: s.history, ownLaws, from: p.year, to: t })
+    s.approval = clamp(s.approval + promiseVerdictDelta(def, kept))
+    s.log.push({
+      year: t,
+      kind: 'eleicao',
+      title: kept ? `Promessa cumprida: ${def.label}` : `Promessa descumprida: ${def.label}`,
+      text: kept
+        ? 'Os eleitores reconhecem: a promessa de campanha virou realidade.'
+        : def.feasibility === 'impossivel'
+          ? `A oposição e a imprensa cobram a promessa, que nunca poderia ser cumprida. ${def.how}`
+          : `A promessa não foi cumprida. Para cumprir: ${lowerFirst(def.how)}`,
+      good: kept,
+    })
+    return { ...p, status: kept ? 'cumprida' : 'quebrada' }
+  })
+}
+
+/** Bônus de votos das promessas feitas para a eleição do ano t. */
+export function campaignBonus(state: CareerState, t: number): number {
+  return state.promises
+    .filter((p) => p.status === 'campanha' && p.year === t)
+    .reduce((acc, p) => acc + (findPromise(p.id)?.voteBonus ?? 0), 0)
+}
+
+function settleOffice(state: CareerState, input: SimInput, results: YearResult[]): CareerState {
   const t = state.t
   const r = results[t]
   const s: CareerState = { ...state, proposedThisYear: false, resolved: [], log: [...state.log] }
@@ -1060,6 +1145,8 @@ export function settleYear(state: CareerState, input: SimInput, results: YearRes
     const factor = isExecutive(office) ? 1.5 : 0.7
     s.approval = clamp(s.approval + factor * (terr.growth - 2) * media - 1)
   }
+
+  chargePromises(s)
 
   // Eleição do cargo.
   const role = ROLES[office]
@@ -1149,7 +1236,7 @@ export function loyaltyBonus(state: CareerState, office: Office | null): number 
 
 function electionWon(state: CareerState, seed: number, t: number) {
   const rng = mulberry32((seed ^ hashString(`eleicao-jogador:${t}:${state.office}`)) >>> 0)
-  const p = 1 / (1 + Math.exp(-(state.approval + loyaltyBonus(state, state.office) - 48) / 6))
+  const p = 1 / (1 + Math.exp(-(state.approval + loyaltyBonus(state, state.office) + campaignBonus(state, t) - 48) / 6))
   return rng() < p
 }
 
@@ -1208,7 +1295,7 @@ function runCandidacy(state: CareerState, office: Office, seed: number): CareerS
     return s
   }
   const rng = mulberry32((seed ^ hashString(`candidatura:${s.t}:${office}`)) >>> 0)
-  const p = 1 / (1 + Math.exp(-(s.approval + loyaltyBonus(s, office) - 50) / 7))
+  const p = 1 / (1 + Math.exp(-(s.approval + loyaltyBonus(s, office) + campaignBonus(s, s.t) - 50) / 7))
   const won = rng() < p
   s.log.push({
     year: s.t,

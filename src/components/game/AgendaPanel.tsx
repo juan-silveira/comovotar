@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { fmtBRL, fmtNum, lowerFirst } from '../../lib/format'
+import { FEASIBILITY_LABELS, promisesFor } from '../../model/promises'
 import { BUDGET_OPTIONS, EMENDA_OPTIONS, emendaGrowth, FREE_SHARE } from '../../model/budget'
 import { billArguments, billEffectSummary, findBill, type BillTemplate } from '../../model/bills'
 import { canRunFor, CRISIS_OPTIONS, nextElectionOfType, separatismOptions, type CareerState, type TurnItem } from '../../model/career'
@@ -342,6 +343,41 @@ export function AgendaItem({
           />
         </div>
       )
+    case 'promessa': {
+      const role = ROLES[item.office]
+      return (
+        <div>
+          <Tag>{item.initial ? 'Sua campanha' : 'Campanha eleitoral'}</Tag>
+          <h3 className="mt-1 text-base font-semibold text-ink">
+            {item.initial ? `O que você prometeu para se eleger ${lowerFirst(role.title)}?` : `Qual será a sua principal promessa para ${lowerFirst(role.title)}?`}
+          </h3>
+          <p className="mt-1 text-sm text-ink-2">
+            Promessas rendem votos, mas no fim do mandato o eleitor cobra. Cumprir aumenta a aprovação; descumprir derruba,
+            e prometer o impossível derruba ainda mais. A etiqueta mostra a análise da sua assessoria.
+          </p>
+          <Choices
+            capital={cap}
+            onChoose={onResolve}
+            choices={[
+              ...promisesFor(item.office).map((p) => ({
+                id: p.id,
+                label: `${p.feasibility === 'impossivel' ? '⚠️' : p.feasibility === 'dificil' ? '🟡' : '✅'} ${p.label}`,
+                description: p.description,
+                pros: [item.initial ? 'Ajudou a eleger você.' : `+${p.voteBonus} pontos na disputa desta eleição.`],
+                cons: [p.feasibility === 'impossivel' ? `${FEASIBILITY_LABELS[p.feasibility]}: ${p.how}` : `Para cumprir: ${lowerFirst(p.how)}`],
+              })),
+              {
+                id: 'nenhuma',
+                label: 'Não fazer promessas específicas',
+                description: 'Campanha baseada no que já foi feito.',
+                pros: ['Ninguém poderá cobrar uma promessa descumprida.'],
+                cons: ['Menos votos do que quem promete.'],
+              },
+            ]}
+          />
+        </div>
+      )
+    }
     case 'separatismo':
       return (
         <div>
