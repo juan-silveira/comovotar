@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { markTipSeen, seenTips, TIPS } from './tips'
 import type { CareerState, TurnItem } from '../../model/career'
 import type { OFFICE_ORDER } from '../../model/roles'
 import { AgendaItem } from './AgendaPanel'
@@ -53,6 +54,14 @@ export function EventModal({
     if (!show && d.open) d.close()
   }, [show])
   const h = item ? HEADER[item.kind] : null
+  // Dica de primeira vez para este tipo de decisão.
+  const [seen, setSeen] = useState(seenTips)
+  const tip = item && TIPS[item.kind] && !seen.has(item.kind) ? TIPS[item.kind] : null
+  const dismissTip = () => {
+    if (!item) return
+    markTipSeen(item.kind)
+    setSeen(seenTips())
+  }
   return (
     <dialog
       ref={ref}
@@ -74,7 +83,27 @@ export function EventModal({
             </span>
           </div>
           <div className="max-h-[75vh] overflow-y-auto p-5">
-            <AgendaItem item={item} career={career} onResolve={(id) => onResolve(item, id)} onCareer={onCareer} />
+            {tip && (
+              <div className="mb-3 flex items-start gap-2 rounded-xl border border-accent/40 bg-surface-2 p-3 text-xs leading-relaxed text-ink">
+                <span aria-hidden className="text-base">💡</span>
+                <p className="flex-1">
+                  <strong>Dica: </strong>
+                  {tip}
+                </p>
+                <button type="button" onClick={dismissTip} className="shrink-0 text-ink-2 underline">
+                  Entendi
+                </button>
+              </div>
+            )}
+            <AgendaItem
+              item={item}
+              career={career}
+              onResolve={(id) => {
+                if (tip) dismissTip()
+                onResolve(item, id)
+              }}
+              onCareer={onCareer}
+            />
           </div>
           <div className="flex justify-end border-t border-line px-5 py-2">
             <button type="button" onClick={onClose} className="text-xs text-ink-2 underline">
