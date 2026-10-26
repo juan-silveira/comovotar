@@ -18,3 +18,12 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register(`/sw.js?v=${__BUILD_ID__}`).catch(() => {})
   })
 }
+
+// Se o site carregou bem, libera uma nova recarga automática numa próxima atualização.
+setTimeout(() => {
+  try {
+    sessionStorage.removeItem('sdr.reloaded')
+  } catch {
+    // ignorado
+  }
+}, 15000)

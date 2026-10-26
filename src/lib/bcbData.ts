@@ -49,19 +49,39 @@ async function fetchSeries(code: number, days: number): Promise<BcbPoint[]> {
   return rows.map((r) => ({ date: isoDate(r.data), value: Number(r.valor) })).filter((p) => Number.isFinite(p.value))
 }
 
+/** A API do Banco Central falha de forma intermitente: tenta de novo antes de desistir. */
+async function withRetry<T>(f: () => Promise<T>, tries = 3): Promise<T> {
+  let last: unknown
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await f()
+    } catch (e) {
+      last = e
+      await new Promise((r) => setTimeout(r, 600 * (i + 1)))
+    }
+  }
+  throw last
+}
+
 export async function fetchBcbMacro(): Promise<BcbMacro> {
-  const [selic, ipca12, dollar] = await Promise.all([
-    fetchSeries(BCB_SERIES.selic.code, BCB_SERIES.selic.days),
-    fetchSeries(BCB_SERIES.ipca12.code, BCB_SERIES.ipca12.days),
-    fetchSeries(BCB_SERIES.dollar.code, BCB_SERIES.dollar.days),
-  ])
+  // Em sequência, para não disparar o limite de requisições da API.
+  const out: Partial<Record<keyof typeof BCB_SERIES, BcbPoint[]>> = {}
+  for (const id of Object.keys(BCB_SERIES) as (keyof typeof BCB_SERIES)[]) {
+    try {
+      out[id] = await withRetry(() => fetchSeries(BCB_SERIES[id].code, BCB_SERIES[id].days))
+    } catch {
+      out[id] = []
+    }
+  }
+  if (!out.selic?.length && !out.ipca12?.length && !out.dollar?.length) throw new Error('Banco Central indisponível')
+  const selic = out.selic ?? []
   // A série da meta Selic é diária e repete o valor: guarda só as mudanças e o último dia útil.
   const today = new Date().toISOString().slice(0, 10)
   const past = selic.filter((p) => p.date <= today)
   const changes = past.filter((p, i) => i === 0 || p.value !== past[i - 1].value)
   const last = past[past.length - 1]
   const compact = last && changes[changes.length - 1] !== last ? [...changes, last] : changes
-  return { fetchedAt: new Date().toISOString(), selic: compact, ipca12, dollar }
+  return { fetchedAt: new Date().toISOString(), selic: compact, ipca12: out.ipca12 ?? [], dollar: out.dollar ?? [] }
 }
 
 const fresh = (m: BcbMacro | null) => !!m && Date.now() - new Date(m.fetchedAt).getTime() < MAX_AGE
@@ -94,7 +114,7 @@ export async function loadBcbMacro(): Promise<BcbLoad> {
   try {
     const data = await fetchBcbMacro()
     save(data)
-    if (db && auth?.currentUser) {
+    if (db && auth?.currentUser && data.selic.length && data.ipca12.length && data.dollar.length) {
       try {
         await setDoc(doc(db, 'datasets', 'bcb-macro'), { data, fetchedAtTs: serverTimestamp() })
       } catch {

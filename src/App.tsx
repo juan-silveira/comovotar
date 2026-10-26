@@ -6,17 +6,32 @@ import { Home } from './pages/Home'
 import { GameProvider } from './state/game'
 import { ScenarioProvider } from './state/scenario'
 
-const Assistant = lazy(() => import('./pages/Assistant').then((m) => ({ default: m.Assistant })))
-const Compare = lazy(() => import('./pages/Compare').then((m) => ({ default: m.Compare })))
-const Config = lazy(() => import('./pages/Config').then((m) => ({ default: m.Config })))
-const Economy = lazy(() => import('./pages/Economy').then((m) => ({ default: m.Economy })))
-const Data = lazy(() => import('./pages/Data').then((m) => ({ default: m.Data })))
-const GameScreen = lazy(() => import('./pages/GameScreen').then((m) => ({ default: m.GameScreen })))
-const Institutions = lazy(() => import('./pages/Institutions').then((m) => ({ default: m.Institutions })))
-const NewGame = lazy(() => import('./pages/NewGame').then((m) => ({ default: m.NewGame })))
-const Ranking = lazy(() => import('./pages/Ranking').then((m) => ({ default: m.Ranking })))
-const Report = lazy(() => import('./pages/Report').then((m) => ({ default: m.Report })))
-const Simulation = lazy(() => import('./pages/Simulation').then((m) => ({ default: m.Simulation })))
+/**
+ * Carrega uma página sob demanda. Logo após uma atualização do site, a página
+ * aberta pode pedir arquivos que não existem mais: recarrega uma vez.
+ */
+function page<T>(load: () => Promise<T>): () => Promise<T> {
+  return () =>
+    load().catch((e) => {
+      if (!sessionStorage.getItem('sdr.reloaded')) {
+        sessionStorage.setItem('sdr.reloaded', '1')
+        window.location.reload()
+      }
+      throw e
+    })
+}
+
+const Assistant = lazy(page(() => import('./pages/Assistant').then((m) => ({ default: m.Assistant }))))
+const Compare = lazy(page(() => import('./pages/Compare').then((m) => ({ default: m.Compare }))))
+const Config = lazy(page(() => import('./pages/Config').then((m) => ({ default: m.Config }))))
+const Economy = lazy(page(() => import('./pages/Economy').then((m) => ({ default: m.Economy }))))
+const Data = lazy(page(() => import('./pages/Data').then((m) => ({ default: m.Data }))))
+const GameScreen = lazy(page(() => import('./pages/GameScreen').then((m) => ({ default: m.GameScreen }))))
+const Institutions = lazy(page(() => import('./pages/Institutions').then((m) => ({ default: m.Institutions }))))
+const NewGame = lazy(page(() => import('./pages/NewGame').then((m) => ({ default: m.NewGame }))))
+const Ranking = lazy(page(() => import('./pages/Ranking').then((m) => ({ default: m.Ranking }))))
+const Report = lazy(page(() => import('./pages/Report').then((m) => ({ default: m.Report }))))
+const Simulation = lazy(page(() => import('./pages/Simulation').then((m) => ({ default: m.Simulation }))))
 
 export default function App() {
   return (
