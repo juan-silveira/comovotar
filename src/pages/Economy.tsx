@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { LiveMacro } from '../components/finance/LiveMacro'
 import { useSearchParams } from 'react-router-dom'
 import { TimeSeriesChart } from '../components/charts'
 import { Card, Segmented, Slider, Term } from '../components/ui'
@@ -31,6 +32,7 @@ export function Economy() {
           simplificadas, para mostrar ordens de grandeza.
         </p>
       </div>
+      <LiveMacro />
       <div className="overflow-x-auto">
         <Segmented label="Tema" value={tab} onChange={(v) => setParams({ aba: v })} options={TABS} />
       </div>

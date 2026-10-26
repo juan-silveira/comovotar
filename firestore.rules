@@ -8,19 +8,21 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Cache público dos dados do IBGE (UFs e municípios). Qualquer usuário
-    // autenticado pode criar o cache ou renová-lo depois de 30 dias.
+    // Cache público de dados oficiais: IBGE (UFs e municípios, renovável a
+    // cada 30 dias) e Banco Central (indicadores, renovável a cada 12 horas).
+    // Qualquer usuário autenticado pode criar o cache ou renová-lo vencido.
     match /datasets/{id} {
       allow read: if true;
       allow create: if isValidDataset(id);
       allow update: if isValidDataset(id)
-        && request.time > resource.data.fetchedAtTs + duration.value(30, 'd');
+        && request.time > resource.data.fetchedAtTs
+           + (id == 'bcb-macro' ? duration.value(12, 'h') : duration.value(30, 'd'));
     }
 
     function isValidDataset(id) {
       let d = request.resource.data;
       return request.auth != null
-        && id.matches('^ibge-(uf|municipios-[A-Z]{2})$')
+        && id.matches('^(ibge-(uf|municipios-[A-Z]{2})|bcb-macro)$')
         && d.keys().hasOnly(['data', 'fetchedAtTs'])
         && d.fetchedAtTs == request.time
         && d.data is map;

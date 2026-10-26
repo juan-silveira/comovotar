@@ -129,7 +129,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
 
 ## Fase 6 — Dados vivos e realismo
 
-- [ ] **APIs oficiais com cache no Firestore:**
+- [x] **Banco Central ao vivo:** Selic, IPCA em 12 meses e dólar na página de economia, com cache no navegador e no Firestore (12 horas). Demais APIs oficiais com cache no Firestore:
   - Banco Central (SGS: Selic, IPCA, câmbio);
   - Tesouro (dívida, resultado primário);
   - TSE (eleições, bancadas);
