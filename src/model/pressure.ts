@@ -348,8 +348,177 @@ export const PRESSURE_EVENTS: PressureEvent[] = [
   },
 ]
 
+// Política externa (presidente) --------------------------------------------------------------
+
+/** Decisões de política externa: o presidente conduz, o Congresso aprova tratados (CF, arts. 49 e 84). */
+export const FOREIGN_EVENTS: PressureEvent[] = [
+  {
+    id: 'onu-guerra',
+    offices: ['presidente'],
+    icon: '🇺🇳',
+    group: 'Política externa',
+    title: 'ONU vota resolução que condena a invasão de um país',
+    text: 'Uma grande potência invadiu um vizinho. Aliados ocidentais pedem o voto do Brasil; a potência é parceira comercial importante e membro do BRICS.',
+    ref: 'art84',
+    options: [
+      {
+        id: 'condenar',
+        label: 'Votar pela condenação',
+        pros: ['Defende o princípio da não intervenção e da integridade territorial (CF, art. 4º).', 'Aproxima de EUA e Europa.'],
+        cons: ['Atrito com um parceiro comercial e do BRICS.'],
+        approval: 1,
+        growth: -0.02,
+      },
+      {
+        id: 'abster',
+        label: 'Abster-se e defender negociação de paz',
+        pros: ['Mantém a tradição de neutralidade e o diálogo com os dois lados.'],
+        cons: ['Aliados ocidentais criticam a ambiguidade.'],
+        approval: 0,
+      },
+      {
+        id: 'mediar',
+        label: 'Abster-se e se oferecer como mediador',
+        pros: ['Projeta o Brasil como potência diplomática se der certo.'],
+        cons: ['Custa capital e pode fracassar publicamente.'],
+        capital: -1,
+        success: 0.3,
+        approval: 3,
+        failApproval: -1,
+        okText: 'As partes aceitaram uma rodada de conversas em Brasília.',
+        failText: 'A proposta de mediação foi ignorada pelas partes.',
+      },
+    ],
+  },
+  {
+    id: 'refugiados',
+    offices: ['presidente', 'governador'],
+    icon: '🧳',
+    group: 'Política externa',
+    title: 'Crise humanitária no país vizinho: milhares cruzam a fronteira',
+    text: 'Fugindo da fome e da violência, famílias chegam pela fronteira norte. Abrigos e hospitais da região estão lotados.',
+    options: [
+      {
+        id: 'acolher',
+        label: 'Acolher e levar parte das famílias para outros estados',
+        pros: ['Cumpre a Lei de Migração e os tratados de refúgio; alivia a região de fronteira.', 'Migrantes em idade ativa podem reforçar a economia.'],
+        cons: ['Custo de abrigos e serviços; resistência em parte da população.'],
+        fiscal: -0.02,
+        growth: 0.02,
+        approval: -1,
+      },
+      {
+        id: 'fechar',
+        label: 'Restringir a entrada na fronteira',
+        pros: ['Responde a quem teme a pressão sobre os serviços (+1).'],
+        cons: ['Fechar a fronteira a quem pede refúgio contraria a lei e tratados; a Justiça pode barrar.'],
+        approval: 1,
+        success: 0.4,
+        failApproval: -2,
+        okText: 'A restrição foi mantida, sob críticas de organismos internacionais.',
+        failText: 'A Justiça suspendeu a medida por contrariar a Lei de Migração (Lei 13.445/2017).',
+      },
+      {
+        id: 'ajuda',
+        label: 'Enviar ajuda humanitária ao país vizinho',
+        pros: ['Ataca a causa da crise na origem.'],
+        cons: ['Custa recursos e tem efeito incerto.'],
+        fiscal: -0.01,
+      },
+    ],
+  },
+  {
+    id: 'ocde-brics',
+    offices: ['presidente'],
+    icon: '🌐',
+    group: 'Política externa',
+    title: 'Convite para acelerar a entrada na OCDE',
+    text: 'A OCDE, clube de economias desenvolvidas, oferece acelerar a adesão do Brasil em troca de reformas. Parceiros do BRICS veem com desconfiança.',
+    options: [
+      {
+        id: 'ocde',
+        label: 'Priorizar a entrada na OCDE',
+        pros: ['Selo de boas práticas pode atrair investimento e reduzir juros.'],
+        cons: ['Exige reformas e limita políticas industriais.'],
+        capital: -1,
+        growth: 0.04,
+      },
+      {
+        id: 'brics',
+        label: 'Priorizar o BRICS e o Sul Global',
+        pros: ['Amplia comércio e financiamento com grandes emergentes, como o banco do BRICS.'],
+        cons: ['Distância de investidores ocidentais.'],
+        growth: 0.02,
+      },
+      {
+        id: 'ambos',
+        label: 'Manter as duas frentes abertas',
+        pros: ['Preserva a autonomia e o diálogo com todos.'],
+        cons: ['Avança devagar nas duas.'],
+        growth: 0.01,
+      },
+    ],
+  },
+  {
+    id: 'fundo-amazonia',
+    offices: ['presidente'],
+    icon: '🌳',
+    group: 'Política externa',
+    title: 'Países europeus oferecem doações ao Fundo Amazônia',
+    text: 'Noruega e Alemanha propõem novas doações bilionárias, condicionadas à queda do desmatamento.',
+    options: [
+      {
+        id: 'aceitar',
+        label: 'Aceitar com metas de desmatamento',
+        pros: ['Recursos para fiscalização e economia da floresta sem custo ao Tesouro.'],
+        cons: ['Setores críticos falam em interferência estrangeira.'],
+        fiscal: 0.02,
+        approval: 1,
+      },
+      {
+        id: 'recusar',
+        label: 'Recusar em nome da soberania',
+        pros: ['Agrada quem vê as metas como interferência (+1 de capital com a bancada ruralista).'],
+        cons: ['Perde recursos e imagem internacional.'],
+        capital: 1,
+        approval: -1,
+      },
+    ],
+  },
+  {
+    id: 'moedas-locais',
+    offices: ['presidente'],
+    icon: '💱',
+    group: 'Política externa',
+    title: 'Proposta de comércio em moedas locais com parceiros',
+    text: 'Parceiros do Mercosul e do BRICS propõem pagar exportações e importações sem passar pelo dólar.',
+    options: [
+      {
+        id: 'aderir',
+        label: 'Aderir aos poucos',
+        pros: ['Reduz custos de câmbio e a dependência do dólar.'],
+        cons: ['Volume pequeno no início; os EUA podem reagir.'],
+        growth: 0.01,
+      },
+      {
+        id: 'recusar',
+        label: 'Manter o dólar como referência',
+        pros: ['Evita atrito com os EUA e com o mercado financeiro.'],
+        cons: ['Mantém a exposição à variação do dólar.'],
+      },
+    ],
+  },
+]
+
 export function findPressure(id: string): PressureEvent | undefined {
-  return PRESSURE_EVENTS.find((e) => e.id === id)
+  return PRESSURE_EVENTS.find((e) => e.id === id) ?? FOREIGN_EVENTS.find((e) => e.id === id)
+}
+
+/** Sorteia uma decisão de política externa (25% de chance ao ano). */
+export function drawForeign(office: Office, rng: () => number): PressureEvent | null {
+  if (rng() > 0.25) return null
+  const pool = FOREIGN_EVENTS.filter((e) => e.offices.includes(office))
+  return pool.length ? pool[Math.floor(rng() * pool.length)] : null
 }
 
 /** Sorteia uma pressão para o cargo no ano (35% de chance). */

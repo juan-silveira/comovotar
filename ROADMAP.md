@@ -97,7 +97,7 @@ Um jogo, jogado principalmente no celular, que mostra a leigos **como a polític
   - crise climática global e crises migratórias na fronteira;
   - eleições e mudanças de governo em grandes parceiros.
 - [ ] **Câmbio e balança comercial no modelo:** o dólar afeta inflação, dívida externa, exportadores e importadores.
-- [ ] **Política externa:** neutralidade × alinhamentos (EUA, China, UE, BRICS, OCDE), acordos (Mercosul–UE), ajuda humanitária, sanções. Cada escolha tem ganhos e custos.
+- [x] **Política externa (primeira versão):** votação na ONU sobre invasão (condenar, abster-se, mediar), refugiados na fronteira, OCDE × BRICS, Fundo Amazônia e comércio em moedas locais. Ideias originais: neutralidade × alinhamentos (EUA, China, UE, BRICS, OCDE), acordos (Mercosul–UE), ajuda humanitária, sanções. Cada escolha tem ganhos e custos.
 - [ ] **Forças Armadas e soberania:** fronteiras, Amazônia, missões de paz. O papel constitucional das Forças Armadas e o que elas não podem fazer.
 
 ## Fase 4 — Jogo (objetivos, conquistas, ranking)

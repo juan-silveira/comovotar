@@ -31,7 +31,7 @@ import {
 } from './governance'
 import { GLOBAL_RESPONSES, isGlobalEvent, type GlobalEventId } from './geopolitics'
 import { difficultyOf, type Difficulty } from './difficulty'
-import { drawPressure, findPressure } from './pressure'
+import { drawForeign, drawPressure, findPressure } from './pressure'
 import { findPromise, promiseVerdictDelta, type ChoiceRecord, type PromiseRecord } from './promises'
 import { budgetOutcome, emendaGrowth, emendaValue, findBudgetOption, findEmendaOption } from './budget'
 import { CLIMATE_LABELS } from './climate'
@@ -497,7 +497,7 @@ export function itemKey(item: TurnItem, t: number): string {
     case 'crise-global':
       return `crise-global:${item.eventId}:${t}`
     case 'pressao':
-      return `pressao:${t}`
+      return `pressao:${item.eventId}:${t}`
   }
 }
 
@@ -626,6 +626,8 @@ export function pendingItems(state: CareerState, input: SimInput, results: YearR
         : state.approval < 40)
     const ev = office === 'ministro-stf' ? (rng() < 0.15 ? findPressure('fake-news') ?? null : null) : drawPressure(office, rng, weak, difficultyOf(state.setup.difficulty).events)
     if (ev) items.push({ kind: 'pressao', eventId: ev.id })
+    const foreign = drawForeign(office, mulberry32((input.seed ^ hashString(`externa:${next}:${office}`)) >>> 0))
+    if (foreign && foreign.id !== ev?.id) items.push({ kind: 'pressao', eventId: foreign.id })
   }
 
   // Financiamento da campanha (anos de eleição).
@@ -897,7 +899,7 @@ function resolvePressure(s: CareerState, item: Extract<TurnItem, { kind: 'pressa
   const ev = findPressure(item.eventId)
   const opt = ev?.options.find((o) => o.id === optionId)
   if (!ev || !opt) return s
-  const ok = opt.success === undefined || mulberry32((input.seed ^ hashString(`pressao-resultado:${next}`)) >>> 0)() < opt.success
+  const ok = opt.success === undefined || mulberry32((input.seed ^ hashString(`pressao-resultado:${ev.id}:${next}`)) >>> 0)() < opt.success
   const fiscal = ok ? (opt.fiscal ?? 0) : (opt.failFiscal ?? opt.fiscal ?? 0)
   s.approval = clamp(s.approval + (ok ? (opt.approval ?? 0) : (opt.failApproval ?? 0)))
   if (opt.capital) s.capital = Math.max(0, s.capital + opt.capital)
